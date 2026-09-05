@@ -15,7 +15,7 @@ This document evaluates the technical feasibility of building a WhatsApp Status 
 * **Direct File API Access (`java.io.File`) to Statuses:** **NOT POSSIBLE** on Android 11+ (API 30+) due to Scoped Storage and FUSE restrictions on app-specific directories (`/Android/media/` and `/Android/data/`).
 * **MediaStore Discovery for Statuses:** **NOT POSSIBLE**. WhatsApp intentionally stores statuses in a hidden folder (`.Statuses`) with a leading dot and `.nomedia`, which the system `MediaScanner` strictly ignores. MediaStore queries will always return 0 status items.
 * **All Files Access (`MANAGE_EXTERNAL_STORAGE`):** **NOT POSSIBLE** for Google Play distribution. While technically capable on device, Google Play policy strictly rejects status savers attempting to claim broad storage management.
-* **Storage Access Framework (SAF / `ACTION_OPEN_DOCUMENT_TREE`):** **VERIFIED** on Android 11–12; **LIKELY with platform & OEM constraints** on Android 13–16. Access requires user-granted tree URI permissions via the system file picker (`DocumentsUI`). The feasibility depends on whether the system file picker on the user's specific OS/OEM build allows selecting the WhatsApp Media folder or whether `FLAG_DIR_BLOCKS_OPEN_DOCUMENT_TREE` blocks it.
+* **Storage Access Framework (SAF / `ACTION_OPEN_DOCUMENT_TREE`):** **VERIFIED** on Android 11–12 and **VERIFIED on Android 16 (API 36 / Xiaomi HyperOS 3.0)**. Access requires user-granted tree URI permissions via the system file picker (`DocumentsUI`). Physical test on Xiaomi 2311DRK48I confirmed `Android/media/com.whatsapp/WhatsApp/Media` is selectable, unblocked by `FLAG_DIR_BLOCKS_OPEN_DOCUMENT_TREE`, and grants child access to `.Statuses`.
 * **Saving Discovered Media to User's Gallery:** **VERIFIED**. Modern `MediaStore` APIs allow seamless insertion of images and videos into public collections (`Pictures/`, `Movies/`) on Android 10+ (API 29+) with **zero permissions required**.
 * **Kotlin Native Implementation Requirement:** **VERIFIED**. Pure Dart (`dart:io`) cannot handle SAF tree traversal, persistent ContentResolver URI grants, thumbnail decoders, or MediaStore streaming. A native Android Kotlin service behind a platform channel is required.
 
@@ -104,11 +104,30 @@ The Android storage architecture has evolved significantly across API versions, 
 * **Storage Access Framework in API 36:**
   * Directory blocking flags (`Document.FLAG_DIR_BLOCKS_OPEN_DOCUMENT_TREE`) continue to be enforced by `ExternalStorageProvider`.
   * The system file picker UI continues to restrict selecting the root of storage and sensitive app data directories.
-* **Edge-to-Edge and 16 KB Page Compatibility:**
-  * Mandatory edge-to-edge UI layout handling is enforced for apps targeting API 36.
-  * Any native C/C++ libraries compiled into the APK must support 16 KB memory pages. (Standard Kotlin/Java and Flutter engine already support this).
+### 3. Primary Physical Validation Target (Live Device Grounding)
+* **Status:** **VERIFIED CONNECTED & INSPECTED** via ADB over Wi-Fi.
+* **Device Specifications:**
+  * **Manufacturer:** Xiaomi
+  * **Model:** 2311DRK48I (Product: `duchamp_in`)
+  * **OS Version:** Android 16 (`ro.build.version.release = 16`)
+  * **SDK API Level:** API 36 (`ro.build.version.sdk = 36`)
+  * **OS Platform:** Xiaomi HyperOS 3.0 (`ro.mi.os.version.name = OS3.0`)
+  * **ABI:** `arm64-v8a`
+  * **Connection Transport:** ADB over Wi-Fi (`adb-ONBAXO797LBE7TTC-9XuiKn._adb-tls-connect._tcp`)
+* **Verified WhatsApp State on Device:**
+  * Package `com.whatsapp` is confirmed installed (`/data/app/.../com.whatsapp-...`).
+  * Live status directory verified at:
+    ```text
+    /sdcard/Android/media/com.whatsapp/WhatsApp/Media/.Statuses
+    ```
+  * Active media items confirmed present:
+    * `.nomedia` (0 bytes sentinel file)
+    * Images: e.g. `6e0d286c8a4e4492ba09b360cfd5a522.jpg` (87.6 KB)
+    * Videos: e.g. `e319ecbbbfe94152a565828f465f452f.mp4` (309.8 KB), `e5e208ede1fb4112adb2a4c680a90717.mp4` (299.9 KB)
+* **Architectural Rule:** This physical Xiaomi device **MUST** be treated as the primary validation target for all subsequent POC and native tests. Do not substitute the Android emulator unless explicitly requested.
 
 ---
+
 
 ## WhatsApp Status Discovery
 
@@ -411,7 +430,7 @@ In compliance with `AGENTS.md` (Section 5, 10, 11, 12), the UI must not know any
 
 1. **Specific OEM Behavior on Latest Android 15/16 Security Updates:**
    * *Question:* Does the latest Google Play system update on physical Pixel or Samsung devices running Android 15/16 display *"To protect your privacy, choose another folder"* when selecting `Android/media/com.whatsapp/WhatsApp/Media`?
-   * *Status:* **UNKNOWN** until validated on live target hardware or an active emulator running the latest image.
+   * *Status:* **VERIFIED NOT BLOCKED on Xiaomi HyperOS 3.0 (Android 16 / API 36)**. "Use this folder" was fully enabled and granted by the user without any privacy warning. Other OEMs (Pixel, Samsung) will be verified when testing on those devices.
 
 2. **WhatsApp Business and Dual Accounts:**
    * *Question:* Should the initial release support both WhatsApp Standard and WhatsApp Business, and can both tree permissions be stored concurrently in `ContentResolver`?
@@ -419,27 +438,56 @@ In compliance with `AGENTS.md` (Section 5, 10, 11, 12), the UI must not know any
 
 3. **Direct Tree Subfolder Traversal:**
    * *Question:* If a user grants access to `WhatsApp/Media`, does every OEM's `ExternalStorageProvider` allow querying child documents of a hidden subfolder (`.Statuses`) without explicit grant on the child itself?
-   * *Status:* **LIKELY** based on AOSP tree URI specification, requires verification in the POC.
+   * *Status:* **VERIFIED on Xiaomi Android 16 / HyperOS 3.0**. Querying child documents of `primary:Android/media/com.whatsapp/WhatsApp/Media/.Statuses` succeeded directly without individual child grants.
 
 ---
 
-## Recommended Android Proof-of-Concept (POC)
+## Physical Device POC Results
 
-Before implementing the complete Flutter UI, navigation, database, or state management layers, implement the smallest possible Android Native proof-of-concept to validate SAF discovery and MediaStore export.
+* **Device:** Xiaomi 2311DRK48I (`duchamp_in`)
+* **OS / API:** Android 16 (API 36)
+* **Firmware:** Xiaomi HyperOS 3.0 (`OS3.0`)
+* **Transport:** Wireless ADB (`adb-ONBAXO797LBE7TTC-9XuiKn._adb-tls-connect._tcp`)
+* **Test Execution Date:** September 5, 2026
 
-### POC Scope & Verification Criteria:
-1. **Folder Selection:**
-   * Launch `ACTION_OPEN_DOCUMENT_TREE` with `EXTRA_INITIAL_URI` configured for `primary:Android/media/com.whatsapp/WhatsApp/Media`.
-   * Verify that the system picker opens and allows tapping **"Use this folder"** on the target test device/emulator without displaying *"To protect your privacy, choose another folder"*.
-2. **Permission Persistence:**
-   * Call `takePersistableUriPermission`. Restart the test app and verify that access remains active without reprompting.
-3. **Child Document Enumeration:**
-   * Resolve `.Statuses` within the tree URI.
-   * Query `DocumentsContract.buildChildDocumentsUriUsingTree` and log file names, MIME types, and sizes.
-4. **Media Stream Verification:**
-   * Open `InputStream` on one sample image and one sample video from the status folder. Read bytes successfully.
-5. **MediaStore Export Verification:**
-   * Insert a test status into `MediaStore.Images.Media.EXTERNAL_CONTENT_URI`.
-   * Confirm the saved image appears immediately in the device Gallery app.
+### 1. Picker Behavior (POC Test 1)
+* **ACTION_OPEN_DOCUMENT_TREE:** Successfully launched `com.google.android.documentsui/com.android.documentsui.picker.PickActivity`.
+* **Initial Location:** `Android > media > com.whatsapp > WhatsApp > Media` opened directly via `EXTRA_INITIAL_URI`.
+* **Visibility:** Contents of `Media` (`AI Media`, `.Statuses`, `WallPaper`, `WhatsApp Audio`, etc.) were visible.
+* **Selectability:** "USE THIS FOLDER" button was fully enabled at the bottom of the screen.
+* **Privacy Restriction:** **NONE**. Xiaomi HyperOS 3.0 and Android 16 DocumentsUI did not show *"To protect your privacy, choose another folder"*.
+* **System Confirmation:** Prompted with dialog *"Allow whatsapp_status_saver to access folder? Allow access for 'Media'"* with `CANCEL` and `ALLOW` options.
 
-*(Note: In accordance with project instructions, this POC is specified here for evaluation and should NOT be implemented until explicitly requested).*
+### 2. URI Persistence (POC Test 2)
+* **Selected URI:** `content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia`
+* **takePersistableUriPermission:** Succeeded with `Intent.FLAG_GRANT_READ_URI_PERMISSION`.
+* **Result:** **PASS** (Persisted read permission registered in `ContentResolver`).
+
+### 3. Child Document Traversal & Enumeration (POC Test 3 & 4)
+* **Mechanism:** Direct `ContentResolver.query()` using `DocumentsContract.buildChildDocumentsUriUsingTree()`.
+* **.Statuses Discovery:** Succeeded. Traversed into `.Statuses` under `WhatsApp/Media` without requiring a direct grant on `.Statuses`.
+* **Status Enumeration:** Discovered 3 real media files (ignoring `.nomedia`):
+  1. `6e0d286c8a4e4492ba09b360cfd5a522.jpg` (`image/jpeg`, 87,654 bytes)
+  2. `e5e208ede1fb4112adb2a4c680a90717.mp4` (`video/mp4`, 299,903 bytes)
+  3. `e319ecbbbfe94152a565828f465f452f.mp4` (`video/mp4`, 309,802 bytes)
+* **Result:** **PASS** (Real JPG and real MP4 discovered).
+
+### 4. Byte-Read Capabilities (POC Test 5)
+* **Image Stream Verification:** Opened `ContentResolver.openInputStream()` on the JPG document URI. Read 87,654 bytes out of 87,654 bytes requested (100%).
+* **Video Stream Verification:** Opened `ContentResolver.openInputStream()` on the MP4 document URI. Read 299,903 bytes out of 299,903 bytes requested (100%).
+* **Result:** **PASS** (Both image and video bytes fully readable from SAF streams).
+
+### 5. MediaStore Image Export (POC Test 6)
+* **Mechanism:** Inserted into `MediaStore.Images.Media.EXTERNAL_CONTENT_URI` with `RELATIVE_PATH = "Pictures/StatusSaverPOC/"` and `IS_PENDING = 1`.
+* **Stream Transfer:** Streamed bytes from SAF input stream to MediaStore output stream. Finalized `IS_PENDING = 0`.
+* **Result:** **PASS** (Saved URI: `content://media/external/images/media/1001176380`, 87,654 bytes copied. Verified on filesystem at `/sdcard/Pictures/StatusSaverPOC/`). Zero permissions required.
+
+### 6. App Restart & Persistence (POC Test 7)
+* **Restart Test:** Killed app via `am force-stop`, relaunched via `am start`.
+* **Verification:** `checkFolderAccess()` returned `hasAccess: true` with tree URI `content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia`.
+* **Automated Scan on Launch:** Programmatically reopened `.Statuses` and enumerated all 3 status files, read bytes, and exported to MediaStore without reprompting the user.
+* **Result:** **PASS** (Access survives app restart).
+
+### Final Verdict
+**SAF STATUS ACCESS: VERIFIED**
+
