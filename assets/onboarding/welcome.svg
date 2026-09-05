@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 500" width="600" height="500">
+  <defs>
+    <!-- Background Canvas -->
+    <radialGradient id="wBg" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#1A202C"/>
+      <stop offset="60%" stop-color="#0F131A"/>
+      <stop offset="100%" stop-color="#090B0E"/>
+    </radialGradient>
+
+    <!-- Aurora Glow -->
+    <radialGradient id="wGlow" cx="50%" cy="40%" r="45%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#6366F1" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Card 1 Gradient (Mint Sunset) -->
+    <linearGradient id="card1Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+
+    <!-- Card 2 Gradient (Aurora Twilight) -->
+    <linearGradient id="card2Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+
+    <!-- Card 3 Gradient (Golden Hour) -->
+    <linearGradient id="card3Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#1E1B4B"/>
+    </linearGradient>
+
+    <!-- Card Border -->
+    <linearGradient id="cardBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient Backdrop -->
+  <rect width="600" height="500" rx="32" fill="url(#wBg)"/>
+  <rect width="600" height="500" fill="url(#wGlow)"/>
+
+  <!-- Protective Keeva Vault Frame at Base -->
+  <g transform="translate(180, 240)">
+    <rect width="240" height="200" rx="28" fill="#141822" stroke="url(#cardBorder)" stroke-width="2"/>
+    <!-- Gentle Inward Aperture Light Line -->
+    <path d="M 40 40 L 200 40" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-opacity="0.6"/>
+  </g>
+
+  <!-- Floating Media Card 1 (Left - Tilt -12 deg) -->
+  <g transform="translate(120, 110) rotate(-12)">
+    <rect width="130" height="190" rx="16" fill="url(#card1Grad)" stroke="url(#cardBorder)" stroke-width="1.5"/>
+    <!-- Photo Horizon Lines -->
+    <circle cx="65" cy="70" r="22" fill="#34D399" fill-opacity="0.4"/>
+    <path d="M 16 150 Q 55 100 80 140 T 114 150" fill="none" stroke="#6EE7B7" stroke-width="2" stroke-opacity="0.6"/>
+    <!-- Duration Pill -->
+    <rect x="14" y="160" width="44" height="16" rx="4" fill="#000000" fill-opacity="0.6"/>
+    <text x="22" y="172" font-family="sans-serif" font-size="9" font-weight="bold" fill="#F9FAFB">0:15</text>
+  </g>
+
+  <!-- Floating Media Card 3 (Right - Tilt +14 deg) -->
+  <g transform="translate(370, 95) rotate(14)">
+    <rect width="130" height="190" rx="16" fill="url(#card3Grad)" stroke="url(#cardBorder)" stroke-width="1.5"/>
+    <!-- Abstract Sunset Silhouette -->
+    <circle cx="65" cy="65" r="20" fill="#F59E0B" fill-opacity="0.5"/>
+    <path d="M 16 150 C 40 120, 70 160, 114 135" fill="none" stroke="#FBBF24" stroke-width="2" stroke-opacity="0.6"/>
+  </g>
+
+  <!-- Center Hero Moment Card (Straight, Hovering in Aperture) -->
+  <g transform="translate(230, 80)">
+    <rect width="140" height="210" rx="18" fill="url(#card2Grad)" stroke="url(#cardBorder)" stroke-width="2"/>
+    <!-- Mountain Horizon & Moon -->
+    <circle cx="70" cy="60" r="18" fill="#E0E7FF" fill-opacity="0.7"/>
+    <path d="M 12 170 L 50 115 L 85 155 L 105 135 L 128 170 Z" fill="#312E81" fill-opacity="0.7"/>
+    
+    <!-- Signature "Kept" Badge Top Right -->
+    <g transform="translate(86, 12)">
+      <rect width="42" height="20" rx="10" fill="#10B981"/>
+      <path d="M 12 10 L 16 14 L 30 6" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Timestamp Pill -->
+    <rect x="12" y="180" width="56" height="18" rx="5" fill="#000000" fill-opacity="0.65"/>
+    <text x="20" y="193" font-family="sans-serif" font-size="9" font-weight="600" fill="#F9FAFB">Today</text>
+  </g>
+
+  <!-- Radiant Light Sparkles Emitting from Aperture -->
+  <circle cx="210" cy="270" r="4" fill="#34D399"/>
+  <circle cx="390" cy="260" r="3" fill="#818CF8"/>
+  <circle cx="300" cy="50" r="5" fill="#FFFFFF"/>
+</svg>

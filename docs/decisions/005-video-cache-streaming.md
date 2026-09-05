@@ -14,11 +14,12 @@ Implement an on-demand video caching strategy in native Kotlin (`VideoCacheManag
 3. If not cached, it streams bytes from SAF `InputStream` to the cache file on `Dispatchers.IO`. Status videos are short (30–60s max, typically 1–10 MB), copying in < 100 ms on modern UFS storage.
 4. Returns the local filesystem path to Flutter.
 5. Flutter `video_player` initializes using `VideoPlayerController.file(File(path))`.
-6. Cache eviction: Bounded FIFO quota (50 MB limit).
+6. Cache eviction: Bounded LRU eviction quota (100 MB maximum limit, pruning oldest accessed files to 75 MB upon reaching quota).
 
 ## Status
 Accepted.
 
 ## Consequences
-- **Positive:** 100% reliable hardware-accelerated video decoding. Instantaneous seek-bar scrubbing. Audio-video synchronization. No SAF pipe disconnection errors.
-- **Negative:** Small temporary disk usage in app cache (bounded to 50 MB max).
+- **Positive:** Reliable hardware-accelerated video decoding. Instantaneous seek-bar scrubbing. Audio-video synchronization. No SAF pipe disconnection errors.
+- **Negative:** Small temporary disk usage in app cache (bounded to 100 MB max).
+

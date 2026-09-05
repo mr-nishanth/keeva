@@ -141,28 +141,79 @@ WhatsApp stores cached statuses locally on device once a user views them in the 
 | **Dual Apps / Cloned Accounts** | `/storage/emulated/<userId>/Android/media/com.whatsapp/...` (e.g. `userId = 999` on Xiaomi/Samsung) | Varies by OEM |
 
 ### 2. The Storage Access Framework (SAF) Mechanism
-Because direct file access is blocked and MediaStore does not index hidden folders, **Storage Access Framework (SAF)** via `Intent.ACTION_OPEN_DOCUMENT_TREE` is the only non-root platform mechanism available.
+Because direct POSIX file access is blocked on Android 11+ and MediaStore does not index hidden folders, **Storage Access Framework (SAF)** via `Intent.ACTION_OPEN_DOCUMENT_TREE` is the official platform mechanism.
 
-#### How It Operates:
-1. The app creates an `Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)`.
-2. The app pre-populates `DocumentsContract.EXTRA_INITIAL_URI` pointing to the encoded URI of the target folder:
+#### 2.1 How It Operates:
+1. **Advisory Initial URI Construction:**
+   - The app prepares `DocumentsContract.EXTRA_INITIAL_URI` pointing to the target WhatsApp media directory to guide DocumentsUI.
+   - Per current Android documentation, `EXTRA_INITIAL_URI` can be supplied as:
+     - A document URI: `DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", "$volumeId:Android/media/com.whatsapp/WhatsApp/Media")`
+     - A tree URI: `DocumentsContract.buildTreeDocumentUri("com.android.externalstorage.documents", "$volumeId:Android/media/com.whatsapp/WhatsApp/Media")`
+   - **Advisory Rule:** `EXTRA_INITIAL_URI` is strictly advisory. DocumentsUI may ignore it, open at the storage root, or open at recent files depending on Android version, OEM customizations, or directory existence. The app must never assume DocumentsUI honors this hint.
+2. **Dynamic Storage Volume Resolution:**
+   - Do NOT assume `"primary:"` is universally the active storage volume.
+   - The native layer inspects `StorageManager.storageVolumes` (API 24+) or `context.getExternalFilesDirs(null)`:
+     - If the primary volume is active, uses `"primary"`.
+     - If media resides on an adoptable/removable volume, derives the active volume UUID (e.g. `"1A2B-3C4D"`).
+     - If the provider or directory cannot be determined, omits `EXTRA_INITIAL_URI` gracefully, allowing DocumentsUI to launch at its default root without crashing.
+3. **Intent Launch:**
    ```kotlin
-   val initialUri = Uri.parse(
-       "content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia"
-   )
-   intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri)
+   val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+       initialUri?.let { putExtra(DocumentsContract.EXTRA_INITIAL_URI, it) }
+       addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+       addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+   }
    ```
-3. The system opens `DocumentsUI` (the system document picker).
-4. The user verifies the folder and taps **"Use this folder"**, then grants permission in the system confirmation prompt.
-5. In `onActivityResult` / `ActivityResultCallback`, the app receives a `treeUri`.
-6. The app calls:
-   ```kotlin
-   context.contentResolver.takePersistableUriPermission(
-       treeUri,
-       Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-   )
-   ```
-7. Once persisted, the app can enumerate children inside this tree across application restarts without reprompting the user.
+4. **Taking Persistable Read Permission:**
+   - The app takes persistable read permissions on the returned tree URI:
+     ```kotlin
+     context.contentResolver.takePersistableUriPermission(
+         treeUri,
+         Intent.FLAG_GRANT_READ_URI_PERMISSION // Read-only; write permission is NOT requested or needed
+     )
+     ```
+
+#### 2.2 SAF Target Validation Contract
+Upon receiving `selectedTreeUri` from `ACTION_OPEN_DOCUMENT_TREE`, the native layer executes a deterministic 7-step validation contract:
+
+1. **URI Sanity Check:** Verify scheme is `"content"` and `DocumentsContract.isTreeUri(selectedTreeUri) == true`.
+2. **Extract Tree Document ID:** Safely call `DocumentsContract.getTreeDocumentId(selectedTreeUri)`. Catch any `IllegalArgumentException` and return `INVALID`.
+3. **Determine Logical Identity:** Parse document ID (e.g. `<volume>:<path>`). Note that document IDs are provider-opaque strings; string parsing serves as an initial heuristic but must be confirmed via `ContentResolver` queries.
+4. **Resolve WhatsApp Hierarchy:** Evaluate whether the selected tree is:
+   - Direct `.Statuses` folder (`.../WhatsApp/Media/.Statuses`)
+   - Canonical `Media` folder (`.../WhatsApp/Media`)
+   - Supported parent folder (`.../WhatsApp`, `.../com.whatsapp`, or `.../Android/media`)
+5. **Locate `.Statuses` Subfolder:**
+   - If selected tree is `Media`, query child documents with `DocumentsContract.buildChildDocumentsUriUsingTree()` to locate `.Statuses`.
+   - If selected tree is a higher parent, traverse down through the hierarchy (`com.whatsapp` -> `WhatsApp` -> `Media` -> `.Statuses`).
+6. **Verify Query Capability:** Execute a test cursor query on `.Statuses` using `DocumentsContract.buildChildDocumentsUriUsingTree()` with a minimal projection (`COLUMN_DOCUMENT_ID`, `COLUMN_DISPLAY_NAME`, `COLUMN_MIME_TYPE`).
+7. **Classify Result Status:**
+   - `VALID`: Direct `.Statuses` or `WhatsApp/Media` folder selected and verified readable.
+   - `VALID_PARENT`: An ancestor folder (`WhatsApp`, `com.whatsapp`, `Android/media`) was selected and traversal successfully resolved and verified `.Statuses`.
+   - `INVALID`: Unrelated directory (e.g. `DCIM`, `Download`, storage root) where WhatsApp media hierarchy cannot be resolved.
+   - `UNAVAILABLE`: Correct WhatsApp folder structure was selected, but `.Statuses` is missing (user has not opened WhatsApp or no statuses have been viewed yet).
+   - `PERMISSION_REVOKED`: Persisted URI permission was revoked by the user in system Settings or cleared by the OS.
+
+#### 2.3 User Selection Variants & Handling Matrix
+
+| Variant | Selected Path | Classification | Accepted? | User Message | Recovery / Retry Behavior |
+| :--- | :--- | :---: | :---: | :--- | :--- |
+| **A** | `Android/media/com.whatsapp/WhatsApp/Media` | `VALID` | **YES** | *"Folder connected successfully."* | Proceed to status grid. (Canonical target) |
+| **B** | `.../WhatsApp/Media/.Statuses` | `VALID` | **YES** | *"Status folder connected successfully."* | Proceed to status grid. (Direct target) |
+| **C** | `Android/media/com.whatsapp/WhatsApp` | `VALID_PARENT` | **YES** | *"WhatsApp folder connected. Locating media..."* | Traverse to `Media/.Statuses`; proceed if present. |
+| **D** | `Android/media/com.whatsapp` | `VALID_PARENT` | **YES** | *"WhatsApp package connected. Locating media..."* | Traverse to `WhatsApp/Media/.Statuses`; proceed if present. |
+| **E** | `Android/media` | `VALID_PARENT` | **YES** *(if OEM allows)* | *"Media directory connected."* | Traverse to `com.whatsapp/.../.Statuses`. If blocked by OEM, guide to `com.whatsapp`. |
+| **F** | Unrelated folder (`DCIM`, `Download`, etc.) | `INVALID` | **NO** | *"Incorrect folder selected. Please select WhatsApp Media."* | Show permission guide with visual path breadcrumbs; "Try Again" re-launches picker. |
+| **G** | Storage root (`primary:` or `/`) | `INVALID` | **NO** | *"Entire storage root cannot be used. Select WhatsApp Media."* | Re-prompt with advisory initial URI. (Blocked by AOSP on Android 11+). |
+| **H** | Missing WhatsApp directory | `UNAVAILABLE` | **NO** | *"WhatsApp Status folder not found. View a status in WhatsApp first."* | Display "Open WhatsApp" action and "Check Again" button. |
+| **I** | WhatsApp uninstalled | `UNAVAILABLE` | **NO** | *"WhatsApp is not installed on this device."* | Show install prompt or disable discovery. |
+| **J** | Permission revoked | `PERMISSION_REVOKED` | **NO** | *"Folder access was revoked. Please reconnect."* | Clear stale URI; show "Reconnect Folder" action to launch picker. |
+
+#### 2.4 Limitations of Provider-Specific Path Identity
+- SAF document IDs are opaque strings defined by the document provider (`ExternalStorageProvider`).
+- While AOSP formats document IDs as `primary:Android/media/...`, custom OEMs or third-party file managers may return custom or encoded document IDs.
+- Therefore, the app never relies solely on string matching (`.contains(".Statuses")`). It validates the tree by querying `DocumentsContract.buildChildDocumentsUriUsingTree()` through `ContentResolver`.
+
 
 ### 3. Feasibility Classification Across Android Versions
 * **Android 10 and below:** **VERIFIED**. Simple `File("/storage/emulated/0/WhatsApp/Media/.Statuses").listFiles()` works with `READ_EXTERNAL_STORAGE`.
@@ -211,8 +262,9 @@ Because direct file access is blocked and MediaStore does not index hidden folde
 * **Flutter `video_player` plugin:**
   * When fed a `content://` URI directly, some video players or platform codecs experience buffering delays or fail if the ContentProvider does not support random seek operations across SAF pipe streams.
 * **Recommended Strategy for Smooth Playback:**
-  * For the video viewer screen: Stream from `content://` or copy the target video to a temporary local cache file in `context.cacheDir/status_preview.mp4` when the user taps to play.
-  * Local cache playback guarantees 100% hardware-accelerated, instantaneous seeking, scrub bar responsiveness, and zero SAF permission drops during playback.
+  * For the video viewer screen: Stream the target video to a temporary local cache file in `context.cacheDir/videos/<docIdHash>.mp4` when the user taps to play. The playback cache is bounded at 100 MB maximum with LRU eviction.
+  * Local cache playback enables reliable hardware-accelerated, instantaneous seeking, scrub bar responsiveness, and zero SAF permission drops during playback.
+
 
 ---
 
@@ -375,7 +427,8 @@ In compliance with `AGENTS.md` (Section 5, 10, 11, 12), the UI must not know any
 
 ### 2. Storage Access Framework (SAF) Compliance
 * **Policy Rule:** SAF relies on explicit user consent via the system-provided file picker.
-* **Status:** **VERIFIED COMPLIANT**. Google Play allows apps to use SAF to access folders that the user selects.
+* **Status:** Designed around Android scoped-storage and privacy-friendly SAF/MediaStore mechanisms. Google Play policy permits applications to use the Storage Access Framework (SAF) for user-authorized directories without requiring broad storage permissions (`MANAGE_EXTERNAL_STORAGE`). Note: Google Play approval is subject to policy review at submission time and is never formally guaranteed.
+
 
 ### 3. WhatsApp Branding & Trademark Policy
 * **Play Policy:** Apps cannot impersonate WhatsApp or use the WhatsApp trademark deceptively.

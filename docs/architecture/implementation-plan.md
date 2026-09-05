@@ -22,7 +22,7 @@ Each phase defines:
 
 ## 2. Implementation Phases
 
-### Phase 2A: Architecture Specification & Contracts (CURRENT)
+### Phase 2A: Architecture Specification & Contracts (COMPLETE)
 - **Goal:** Complete the production architecture specification, platform channel contracts, domain models, and implementation roadmap.
 - **Files Created/Modified:**
   - `docs/architecture/production-architecture.md`
@@ -33,26 +33,35 @@ Each phase defines:
 
 ---
 
-### Phase 2B: Production Native Storage Layer (Android/Kotlin)
-- **Goal:** Extract POC logic from `MainActivity.kt` into modular native components under `android/.../status/` with background Coroutine execution and atomic MediaStore saving.
-- **Files to Create/Modify:**
-  - `android/app/src/main/kotlin/com/example/whatsapp_status_saver/MainActivity.kt` (Refactor to slim launcher)
+### Phase 2B: Production Native Storage Layer (Android/Kotlin) (COMPLETE)
+- **Goal:** Extract POC logic from `MainActivity.kt` into modular native components under `android/.../status/` with background Coroutine execution, atomic MediaStore saving, and the approved SAF target validation contract.
+- **Key Specifications Implemented:**
+  - `SafStorageManager.kt`: Advisory initial URI with dynamic volume resolution; 7-step SAF target validation contract (distinguishing VALID, VALID_PARENT, INVALID, UNAVAILABLE, PERMISSION_REVOKED); persistent read permission management (`FLAG_GRANT_READ_URI_PERMISSION`).
+  - `StatusDocumentReader.kt`: Deterministic `.Statuses` traversal and projection queries via ContentResolver.
+  - `MediaStoreSaver.kt`: Zero-permission public gallery export with atomic rollback on failure.
+  - `ThumbnailManager.kt`: 256x256 WebP thumbnail generation with 100 MB maximum disk cache (`cacheDir/thumbnails/`) and LRU eviction.
+  - `VideoCacheManager.kt`: On-demand stream cache for hardware-accelerated playback with 100 MB maximum disk cache (`cacheDir/videos/`) and bounded LRU eviction.
+  - `AndroidStatusScanner.kt`: Facade orchestrator and Coroutine dispatcher (`Dispatchers.IO`).
+- **Files Created/Modified:**
+  - `android/app/src/main/kotlin/com/example/whatsapp_status_saver/MainActivity.kt` (Refactored to slim launcher)
   - `android/app/src/main/kotlin/com/example/whatsapp_status_saver/status/SafStorageManager.kt`
   - `android/app/src/main/kotlin/com/example/whatsapp_status_saver/status/StatusDocumentReader.kt`
   - `android/app/src/main/kotlin/com/example/whatsapp_status_saver/status/MediaStoreSaver.kt`
   - `android/app/src/main/kotlin/com/example/whatsapp_status_saver/status/ThumbnailManager.kt`
   - `android/app/src/main/kotlin/com/example/whatsapp_status_saver/status/VideoCacheManager.kt`
   - `android/app/src/main/kotlin/com/example/whatsapp_status_saver/status/AndroidStatusScanner.kt`
+  - `android/app/src/test/kotlin/com/example/whatsapp_status_saver/NativeStorageUnitTest.kt`
 - **Verification:**
-  - `flutter build apk --debug`
-  - Unit tests for native string/URI utilities.
+  - `flutter build apk --debug` ✓
+  - `./gradlew test` (Android unit tests) ✓
+  - Verified on physical Xiaomi 2311DRK48I (Android 16 / HyperOS 3.0) ✓
 - **Git Commit:** `feat(android): implement modular status storage and media saving layer`
 
 ---
 
-### Phase 2C: Flutter Platform, Core & Domain Layers
+### Phase 2C: Flutter Platform, Core & Domain Layers (COMPLETED)
 - **Goal:** Build the typed platform channel boundary, domain entities, repository interfaces, use cases, DTOs, and error mapping in pure Dart.
-- **Files to Create:**
+- **Files Created:**
   - `lib/core/errors/app_failure.dart`
   - `lib/core/result/result.dart`
   - `lib/core/constants/app_constants.dart`
@@ -75,26 +84,31 @@ Each phase defines:
   - `lib/platform/method_channel_status_scanner.dart`
   - `lib/platform/channel_constants.dart`
 - **Verification:**
-  - `flutter analyze`
-  - `flutter test` (Unit tests for DTO parsing, entity immutability, repository mapping)
+  - `flutter analyze` ✓ (0 issues)
+  - `flutter test` ✓ (68 passing tests)
+  - `flutter build apk --debug` ✓ (Clean build)
 - **Git Commit:** `feat: implement domain models, repository contracts, and platform boundary`
 
 ---
 
-### Phase 2D: State Management & Application Layer
-- **Goal:** Integrate `flutter_riverpod` and implement state notifiers with sealed states for access, status discovery, and saving.
+### Phase 2D: State Management & Application Layer (✓ COMPLETED)
+- **Goal:** Integrate `flutter_riverpod` and implement state notifiers with sealed states for access, status discovery, saving, and media viewer preparation.
 - **Dependencies Added:**
-  - `flutter_riverpod`
-- **Files to Create:**
+  - `flutter_riverpod: ^3.4.3` (zero code generation dependencies)
+- **Files Created:**
   - `lib/application/access/access_state.dart`
   - `lib/application/access/access_notifier.dart`
   - `lib/application/statuses/status_list_state.dart`
   - `lib/application/statuses/status_list_notifier.dart`
   - `lib/application/saver/save_state.dart`
   - `lib/application/saver/save_notifier.dart`
+  - `lib/application/viewer/viewer_state.dart`
+  - `lib/application/viewer/viewer_notifier.dart`
   - `lib/application/providers.dart`
 - **Verification:**
-  - Unit tests covering state transitions (`access_notifier_test.dart`, `status_list_notifier_test.dart`).
+  - `flutter analyze` ✓ (0 issues)
+  - `flutter test` ✓ (109 passing tests: 68 prior + 41 new application tests)
+  - `flutter build apk --debug` ✓ (Clean build)
 - **Git Commit:** `feat(application): implement riverpod state notifiers and sealed states`
 
 ---

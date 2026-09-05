@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 500" width="600" height="500">
+  <defs>
+    <!-- Background Canvas -->
+    <radialGradient id="rBg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#161B26"/>
+      <stop offset="60%" stop-color="#0E1218"/>
+      <stop offset="100%" stop-color="#090B0E"/>
+    </radialGradient>
+
+    <!-- Aurora Halo -->
+    <radialGradient id="rHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#6366F1" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Check Circle Gradient -->
+    <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+
+    <!-- Border Glow -->
+    <linearGradient id="rBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="500" rx="32" fill="url(#rBg)"/>
+  <rect width="600" height="500" fill="url(#rHalo)"/>
+
+  <!-- Concentric Success Waves -->
+  <circle cx="300" cy="220" r="140" fill="none" stroke="#10B981" stroke-opacity="0.15" stroke-width="2"/>
+  <circle cx="300" cy="220" r="190" fill="none" stroke="#6366F1" stroke-opacity="0.10" stroke-width="1.5" stroke-dasharray="8 8"/>
+
+  <!-- Radiant Center Sphere -->
+  <circle cx="300" cy="220" r="76" fill="url(#checkGrad)"/>
+  <circle cx="300" cy="220" r="76" fill="none" stroke="url(#rBorder)" stroke-width="3"/>
+
+  <!-- Bold White Checkmark -->
+  <path d="M 264 220 L 290 248 L 342 192" 
+        fill="none" 
+        stroke="#FFFFFF" 
+        stroke-width="14" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+
+  <!-- Orbiting Moments Sparks -->
+  <circle cx="180" cy="160" r="6" fill="#34D399"/>
+  <circle cx="430" cy="180" r="8" fill="#818CF8"/>
+  <circle cx="230" cy="340" r="5" fill="#6EE7B7"/>
+  <circle cx="390" cy="320" r="7" fill="#34D399"/>
+
+  <!-- Bottom Ready Confirmation Pill -->
+  <g transform="translate(200, 390)">
+    <rect width="200" height="40" rx="20" fill="#141822" stroke="url(#rBorder)" stroke-width="1.5"/>
+    <circle cx="24" cy="20" r="6" fill="#10B981"/>
+    <text x="42" y="25" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#F9FAFB" letter-spacing="1">MOMENTS READY</text>
+  </g>
+</svg>

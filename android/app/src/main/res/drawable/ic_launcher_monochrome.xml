@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="432"
+    android:viewportHeight="432">
+
+    <!-- Inward Aperture Ribbon Silhouette -->
+    <path
+        android:pathData="M 184,280 L 184,212 C 184,184 202,168 228,168 L 254,168 C 274,168 286,180 286,200 C 286,222 266,238 242,238 L 222,238 C 208,238 200,246 200,260 L 200,280"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="16"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Secondary Accent Arc Silhouette -->
+    <path
+        android:pathData="M 220,292 L 262,292 C 282,292 294,280 294,260 L 294,238"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="12"
+        android:strokeLineCap="round" />
+
+    <!-- Preserved Spark Core -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 242,192 A 12,12 0 1,1 241.9,192 Z" />
+</vector>

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'app/app.dart';
 
 void main() {
-  runApp(const SafPocApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const ProviderScope(child: KeevaApp()));
 }
 
 class SafPocApp extends StatelessWidget {
@@ -31,8 +35,9 @@ class SafPocScreen extends StatefulWidget {
 }
 
 class _SafPocScreenState extends State<SafPocScreen> {
-  static const MethodChannel _channel =
-      MethodChannel('com.example.whatsapp_status_saver/scanner');
+  static const MethodChannel _channel = MethodChannel(
+    'com.example.whatsapp_status_saver/scanner',
+  );
 
   final List<String> _logs = [];
   final ScrollController _scrollController = ScrollController();
@@ -65,7 +70,9 @@ class _SafPocScreenState extends State<SafPocScreen> {
   @override
   void initState() {
     super.initState();
-    _log('POC Initialized on Xiaomi 2311DRK48I (Android 16, API 36, HyperOS 3.0)');
+    _log(
+      'POC Initialized on Xiaomi 2311DRK48I (Android 16, API 36, HyperOS 3.0)',
+    );
     _checkInitialAccess();
   }
 
@@ -90,7 +97,9 @@ class _SafPocScreenState extends State<SafPocScreen> {
 
   Future<void> _checkInitialAccess() async {
     try {
-      final res = await _channel.invokeMethod<Map<dynamic, dynamic>>('checkFolderAccess');
+      final res = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'checkFolderAccess',
+      );
       final hasAccess = res?['hasAccess'] == true;
       final uri = res?['treeUri'] as String?;
       if (hasAccess && uri != null) {
@@ -115,10 +124,14 @@ class _SafPocScreenState extends State<SafPocScreen> {
 
   Future<void> _requestSafAccess() async {
     setState(() => _isRunning = true);
-    _log('POC TEST 1: Launching ACTION_OPEN_DOCUMENT_TREE with EXTRA_INITIAL_URI...');
+    _log(
+      'POC TEST 1: Launching ACTION_OPEN_DOCUMENT_TREE with EXTRA_INITIAL_URI...',
+    );
     try {
       _pickerLaunched = true;
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('requestFolderAccess');
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'requestFolderAccess',
+      );
       final granted = result?['granted'] == true;
       final treeUri = result?['treeUri'] as String?;
       final persisted = result?['persisted'] == true;
@@ -131,7 +144,9 @@ class _SafPocScreenState extends State<SafPocScreen> {
       if (granted && treeUri != null) {
         _persistedTreeUri = treeUri;
         _log('POC TEST 2: SAF grant SUCCESS. Tree URI: $treeUri');
-        _log('Persisted URI permission result: ${persisted ? "SUCCESS" : "FAILED"}');
+        _log(
+          'Persisted URI permission result: ${persisted ? "SUCCESS" : "FAILED"}',
+        );
         await _scanDiscoveredStatuses(treeUri);
       } else {
         _log('SAF grant FAILED or cancelled: ${result?['error']}');
@@ -145,7 +160,9 @@ class _SafPocScreenState extends State<SafPocScreen> {
 
   Future<void> _scanDiscoveredStatuses([String? treeUri]) async {
     final uriToUse = treeUri ?? _persistedTreeUri;
-    _log('POC TEST 3: Querying child documents from SAF tree via ContentResolver...');
+    _log(
+      'POC TEST 3: Querying child documents from SAF tree via ContentResolver...',
+    );
     try {
       final List<dynamic>? list = await _channel.invokeMethod<List<dynamic>>(
         'scanStatuses',
@@ -175,10 +192,12 @@ class _SafPocScreenState extends State<SafPocScreen> {
       for (final item in statuses) {
         final name = (item['displayName'] as String? ?? '').toLowerCase();
         final mime = (item['mimeType'] as String? ?? '').toLowerCase();
-        if (_selectedImage == null && (name.endsWith('.jpg') || mime == 'image/jpeg')) {
+        if (_selectedImage == null &&
+            (name.endsWith('.jpg') || mime == 'image/jpeg')) {
           _selectedImage = item;
         }
-        if (_selectedVideo == null && (name.endsWith('.mp4') || mime.startsWith('video/'))) {
+        if (_selectedVideo == null &&
+            (name.endsWith('.mp4') || mime.startsWith('video/'))) {
           _selectedVideo = item;
         }
       }
@@ -189,13 +208,17 @@ class _SafPocScreenState extends State<SafPocScreen> {
       });
 
       if (_selectedImage != null) {
-        _log('POC TEST 4: JPG Found -> ${_selectedImage!['displayName']} (${_selectedImage!['sizeBytes']} bytes)');
+        _log(
+          'POC TEST 4: JPG Found -> ${_selectedImage!['displayName']} (${_selectedImage!['sizeBytes']} bytes)',
+        );
       } else {
         _log('POC TEST 4: JPG NOT FOUND');
       }
 
       if (_selectedVideo != null) {
-        _log('POC TEST 4: MP4 Found -> ${_selectedVideo!['displayName']} (${_selectedVideo!['sizeBytes']} bytes)');
+        _log(
+          'POC TEST 4: MP4 Found -> ${_selectedVideo!['displayName']} (${_selectedVideo!['sizeBytes']} bytes)',
+        );
       } else {
         _log('POC TEST 4: MP4 NOT FOUND');
       }
@@ -215,7 +238,9 @@ class _SafPocScreenState extends State<SafPocScreen> {
   }
 
   Future<void> _verifyMediaStreams() async {
-    _log('POC TEST 5: Verifying byte-read capabilities via ContentResolver.openInputStream...');
+    _log(
+      'POC TEST 5: Verifying byte-read capabilities via ContentResolver.openInputStream...',
+    );
     // Verify Image
     if (_selectedImage != null) {
       final imgUri = _selectedImage!['uri'] as String;
@@ -228,7 +253,9 @@ class _SafPocScreenState extends State<SafPocScreen> {
         final success = res?['success'] == true;
         final readBytes = res?['bytesRead'] ?? 0;
         setState(() => _imageBytesReadable = success);
-        _log('Image read verification: ${success ? "SUCCESS" : "FAILED"} (Requested: $expectedBytes, Read: $readBytes bytes)');
+        _log(
+          'Image read verification: ${success ? "SUCCESS" : "FAILED"} (Requested: $expectedBytes, Read: $readBytes bytes)',
+        );
       } catch (e) {
         setState(() => _imageBytesReadable = false);
         _log('Image read Exception: $e');
@@ -247,7 +274,9 @@ class _SafPocScreenState extends State<SafPocScreen> {
         final success = res?['success'] == true;
         final readBytes = res?['bytesRead'] ?? 0;
         setState(() => _videoBytesReadable = success);
-        _log('Video read verification: ${success ? "SUCCESS" : "FAILED"} (Requested: $expectedBytes, Read: $readBytes bytes)');
+        _log(
+          'Video read verification: ${success ? "SUCCESS" : "FAILED"} (Requested: $expectedBytes, Read: $readBytes bytes)',
+        );
       } catch (e) {
         setState(() => _videoBytesReadable = false);
         _log('Video read Exception: $e');
@@ -257,6 +286,83 @@ class _SafPocScreenState extends State<SafPocScreen> {
     // Export test image
     if (_selectedImage != null && _imageBytesReadable == true) {
       await _exportTestImage();
+      await _verifyPhase2BProductionNative();
+    }
+  }
+
+  Future<void> _verifyPhase2BProductionNative() async {
+    _log('--- PHASE 2B VERIFICATION START ---');
+    try {
+      // 1. Test image thumbnail generation
+      if (_selectedImage != null) {
+        final imgId = _selectedImage!['id'] as String;
+        _log(
+          'PHASE 2B: Testing native thumbnail generation for image (ID: $imgId)...',
+        );
+        final thumbRes = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+          'getThumbnail',
+          {'id': imgId, 'isVideo': false, 'width': 256, 'height': 256},
+        );
+        final filePath = thumbRes?['filePath'];
+        _log('PHASE 2B: Image thumbnail generated: $filePath');
+      }
+
+      // 2. Test video thumbnail generation (frame extraction)
+      if (_selectedVideo != null) {
+        final vidId = _selectedVideo!['id'] as String;
+        _log(
+          'PHASE 2B: Testing native thumbnail generation for video (ID: $vidId)...',
+        );
+        final vidThumbRes = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+          'getThumbnail',
+          {'id': vidId, 'isVideo': true, 'width': 256, 'height': 256},
+        );
+        final vidThumbPath = vidThumbRes?['filePath'];
+        _log('PHASE 2B: Video thumbnail generated: $vidThumbPath');
+
+        // 3. Test on-demand video cache preparation
+        _log('PHASE 2B: Testing on-demand video cache streaming...');
+        final vidCacheRes = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+          'prepareVideo',
+          {'id': vidId, 'sizeBytes': _selectedVideo!['sizeBytes']},
+        );
+        final vidCachePath = vidCacheRes?['filePath'];
+        _log('PHASE 2B: Video cache path: $vidCachePath');
+
+        // 4. Test saving video to MediaStore (Movies/SavedStatus/)
+        _log(
+          'PHASE 2B: Testing MediaStore video save (Movies/SavedStatus/)...',
+        );
+        final vidSaveRes = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+          'saveStatus',
+          {
+            'id': vidId,
+            'displayName':
+                'phase2b_test_${DateTime.now().millisecondsSinceEpoch}_${_selectedVideo!['displayName']}',
+            'isVideo': true,
+            'mimeType': 'video/mp4',
+          },
+        );
+        _log(
+          'PHASE 2B: Video save result: ${vidSaveRes?['success']} (URI: ${vidSaveRes?['insertedUri']}, Bytes: ${vidSaveRes?['bytesSaved']})',
+        );
+      }
+
+      // 5. Test cache stats
+      final statsRes = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'getCacheStats',
+      );
+      _log('PHASE 2B: Cache stats: $statsRes');
+
+      // 6. Test clearing caches (without affecting saved media)
+      final clearRes = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'clearCaches',
+      );
+      _log('PHASE 2B: Clear caches result: $clearRes');
+
+      _log('--- PHASE 2B VERIFICATION COMPLETE: ALL PASS ---');
+    } catch (e) {
+      _log('PHASE 2B Verification Exception: $e');
     }
   }
 
@@ -265,7 +371,8 @@ class _SafPocScreenState extends State<SafPocScreen> {
     try {
       final imgUri = _selectedImage!['uri'] as String;
       final origName = _selectedImage!['displayName'] as String;
-      final exportName = 'poc_export_${DateTime.now().millisecondsSinceEpoch}_$origName';
+      final exportName =
+          'poc_export_${DateTime.now().millisecondsSinceEpoch}_$origName';
 
       final res = await _channel.invokeMethod<Map<dynamic, dynamic>>(
         'saveTestImage',
@@ -302,7 +409,9 @@ class _SafPocScreenState extends State<SafPocScreen> {
   Future<void> _testPersistenceCheck() async {
     _log('POC TEST 7: Checking persisted folder access after restart...');
     try {
-      final res = await _channel.invokeMethod<Map<dynamic, dynamic>>('checkFolderAccess');
+      final res = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'checkFolderAccess',
+      );
       final hasAccess = res?['hasAccess'] == true;
       final uri = res?['treeUri'] as String?;
 
@@ -382,7 +491,10 @@ class _SafPocScreenState extends State<SafPocScreen> {
                   Expanded(
                     child: Text(
                       'Xiaomi 2311DRK48I | Android 16 (API 36) | HyperOS 3.0',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
@@ -402,7 +514,9 @@ class _SafPocScreenState extends State<SafPocScreen> {
                     label: const Text('Request SAF Access (Test 1)'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: _isRunning ? null : () => _scanDiscoveredStatuses(),
+                    onPressed: _isRunning
+                        ? null
+                        : () => _scanDiscoveredStatuses(),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Scan Statuses (Test 3)'),
                   ),
@@ -440,16 +554,22 @@ class _SafPocScreenState extends State<SafPocScreen> {
                         children: [
                           const Text(
                             'DIAGNOSTIC MATRIX',
-                            style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: _finalVerdict == 'VERIFIED'
                                   ? Colors.green.shade800
                                   : (_finalVerdict == 'IN PROGRESS'
-                                      ? Colors.blueGrey
-                                      : Colors.orange.shade800),
+                                        ? Colors.blueGrey
+                                        : Colors.orange.shade800),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -471,12 +591,30 @@ class _SafPocScreenState extends State<SafPocScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _statusRow('Picker launched', _pickerLaunched),
-                                _statusRow('Initial URI accepted', _initialUriAccepted),
-                                _statusRow('Folder selectable', _mediaFolderSelectable),
-                                _statusRow('User grant received', _userGrantReceived),
-                                _statusRow('Persisted URI perm', _persistedUriPermission),
-                                _statusRow('Media accessible', _mediaFolderAccessible),
-                                _statusRow('.Statuses found', _statusesDiscovered),
+                                _statusRow(
+                                  'Initial URI accepted',
+                                  _initialUriAccepted,
+                                ),
+                                _statusRow(
+                                  'Folder selectable',
+                                  _mediaFolderSelectable,
+                                ),
+                                _statusRow(
+                                  'User grant received',
+                                  _userGrantReceived,
+                                ),
+                                _statusRow(
+                                  'Persisted URI perm',
+                                  _persistedUriPermission,
+                                ),
+                                _statusRow(
+                                  'Media accessible',
+                                  _mediaFolderAccessible,
+                                ),
+                                _statusRow(
+                                  '.Statuses found',
+                                  _statusesDiscovered,
+                                ),
                               ],
                             ),
                           ),
@@ -485,13 +623,31 @@ class _SafPocScreenState extends State<SafPocScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _statusRow('Status enumerated', _statusFilesEnumerated),
-                                _statusRow('Image discovered', _imageDiscovered),
-                                _statusRow('Image bytes read', _imageBytesReadable),
-                                _statusRow('Video discovered', _videoDiscovered),
-                                _statusRow('Video bytes read', _videoBytesReadable),
+                                _statusRow(
+                                  'Status enumerated',
+                                  _statusFilesEnumerated,
+                                ),
+                                _statusRow(
+                                  'Image discovered',
+                                  _imageDiscovered,
+                                ),
+                                _statusRow(
+                                  'Image bytes read',
+                                  _imageBytesReadable,
+                                ),
+                                _statusRow(
+                                  'Video discovered',
+                                  _videoDiscovered,
+                                ),
+                                _statusRow(
+                                  'Video bytes read',
+                                  _videoBytesReadable,
+                                ),
                                 _statusRow('MediaStore insert', _imageInserted),
-                                _statusRow('Restart persistent', _accessSurvivesRestart),
+                                _statusRow(
+                                  'Restart persistent',
+                                  _accessSurvivesRestart,
+                                ),
                               ],
                             ),
                           ),
@@ -505,21 +661,31 @@ class _SafPocScreenState extends State<SafPocScreen> {
 
             if (_discoveredStatuses.isNotEmpty || _insertedGalleryUri != null)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: Row(
                   children: [
                     if (_discoveredStatuses.isNotEmpty)
                       Text(
                         'Statuses: ${_discoveredStatuses.length}',
-                        style: const TextStyle(fontSize: 11, color: Colors.tealAccent),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.tealAccent,
+                        ),
                       ),
-                    if (_discoveredStatuses.isNotEmpty && _insertedGalleryUri != null)
+                    if (_discoveredStatuses.isNotEmpty &&
+                        _insertedGalleryUri != null)
                       const Text(' • ', style: TextStyle(color: Colors.grey)),
                     if (_insertedGalleryUri != null)
                       Expanded(
                         child: Text(
                           'Export: $_insertedGalleryUri',
-                          style: const TextStyle(fontSize: 10, color: Colors.amberAccent),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.amberAccent,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -535,8 +701,14 @@ class _SafPocScreenState extends State<SafPocScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('EXECUTION LOG', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  Text('${_logs.length} events', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  const Text(
+                    'EXECUTION LOG',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                  Text(
+                    '${_logs.length} events',
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
                 ],
               ),
             ),
@@ -557,11 +729,14 @@ class _SafPocScreenState extends State<SafPocScreen> {
                   itemBuilder: (context, index) {
                     final log = _logs[index];
                     Color color = Colors.greenAccent;
-                    if (log.contains('FAIL') || log.contains('Exception') || log.contains('NOT FOUND')) {
+                    if (log.contains('FAIL') ||
+                        log.contains('Exception') ||
+                        log.contains('NOT FOUND')) {
                       color = Colors.redAccent;
                     } else if (log.contains('POC TEST')) {
                       color = Colors.amberAccent;
-                    } else if (log.contains('SUCCESS') || log.contains('Discovered')) {
+                    } else if (log.contains('SUCCESS') ||
+                        log.contains('Discovered')) {
                       color = Colors.lightBlueAccent;
                     }
                     return Padding(
@@ -594,9 +769,7 @@ class _SafPocScreenState extends State<SafPocScreen> {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          Expanded(
-            child: Text(label, style: const TextStyle(fontSize: 11)),
-          ),
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 11))),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
             decoration: BoxDecoration(

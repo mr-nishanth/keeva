@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="432"
+    android:viewportHeight="432">
+
+    <!-- Inner Visual Plate (220x220, rx=56) centered in safe area -->
+    <path
+        android:pathData="M 162,106 H 270 A 56,56 0 0,1 326,162 V 270 A 56,56 0 0,1 270,326 H 162 A 56,56 0 0,1 106,270 V 162 A 56,56 0 0,1 162,106 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="106"
+                android:startY="106"
+                android:endX="326"
+                android:endY="326"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#222834" />
+                <item android:offset="1.0" android:color="#141820" />
+            </gradient>
+        </aapt:attr>
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="106"
+                android:startY="106"
+                android:endX="326"
+                android:endY="326"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#47FFFFFF" />
+                <item android:offset="1.0" android:color="#10FFFFFF" />
+            </gradient>
+        </aapt:attr>
+        <aapt:attr name="android:strokeWidth">
+            <aapt:value>2.5</aapt:value>
+        </aapt:attr>
+    </path>
+
+    <!-- Inward Aperture Ribbon (Aurora Gradient) -->
+    <path
+        android:pathData="M 184,280 L 184,212 C 184,184 202,168 228,168 L 254,168 C 274,168 286,180 286,200 C 286,222 266,238 242,238 L 222,238 C 208,238 200,246 200,260 L 200,280"
+        android:strokeWidth="15"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="184"
+                android:startY="168"
+                android:endX="286"
+                android:endY="280"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#34D399" />
+                <item android:offset="0.45" android:color="#10B981" />
+                <item android:offset="1.0" android:color="#6366F1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Secondary Accent Arc (Aurora Indigo) -->
+    <path
+        android:pathData="M 220,292 L 262,292 C 282,292 294,280 294,260 L 294,238"
+        android:strokeColor="#736366F1"
+        android:strokeWidth="12"
+        android:strokeLineCap="round" />
+
+    <!-- Spark Ambient Glow -->
+    <path
+        android:pathData="M 242,182 A 22,22 0 1,1 241.9,182 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="242"
+                android:startY="204"
+                android:endX="264"
+                android:endY="204"
+                android:gradientRadius="22"
+                android:type="radial">
+                <item android:offset="0.0" android:color="#CCA7F3D0" />
+                <item android:offset="0.5" android:color="#8010B981" />
+                <item android:offset="1.0" android:color="#0010B981" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Core Gleaming Spark Beacon -->
+    <path
+        android:pathData="M 242,196 A 8,8 0 1,1 241.9,196 Z"
+        android:fillColor="#FFFFFF" />
+
+</vector>

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <!-- Background Radiant Halo -->
+    <radialGradient id="privHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.3"/>
+      <stop offset="60%" stop-color="#6366F1" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Chip Gradient -->
+    <linearGradient id="chipBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#222A38"/>
+      <stop offset="100%" stop-color="#121720"/>
+    </linearGradient>
+
+    <!-- Chip Border -->
+    <linearGradient id="chipBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="150" cy="150" r="130" fill="url(#privHalo)"/>
+
+  <!-- Outer Boundary Orbit Line -->
+  <circle cx="150" cy="150" r="110" fill="none" stroke="#10B981" stroke-opacity="0.15" stroke-width="1.5" stroke-dasharray="6 6"/>
+
+  <!-- Secure Silicon Hardware Microchip (120x120) -->
+  <rect x="90" y="90" width="120" height="120" rx="28" fill="url(#chipBg)" stroke="url(#chipBorder)" stroke-width="2.5"/>
+
+  <!-- Gold/Emerald Circuit Pins Exiting Chip -->
+  <!-- Top Pins -->
+  <line x1="120" y1="90" x2="120" y2="76" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="150" y1="90" x2="150" y2="76" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="180" y1="90" x2="180" y2="76" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Bottom Pins -->
+  <line x1="120" y1="210" x2="120" y2="224" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="150" y1="210" x2="150" y2="224" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="180" y1="210" x2="180" y2="224" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Left Pins -->
+  <line x1="90" y1="120" x2="76" y2="120" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="90" y1="150" x2="76" y2="150" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="90" y1="180" x2="76" y2="180" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Right Pins -->
+  <line x1="210" y1="120" x2="224" y2="120" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="210" y1="150" x2="224" y2="150" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="210" y1="180" x2="224" y2="180" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Central Enclave Lock Motif -->
+  <!-- Shackle -->
+  <path d="M 136 142 L 136 128 C 136 120, 142 114, 150 114 C 158 114, 164 120, 164 128 L 164 142" 
+        fill="none" stroke="#34D399" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Lock Body -->
+  <rect x="128" y="140" width="44" height="34" rx="8" fill="#10B981"/>
+  <!-- Keyhole -->
+  <circle cx="150" cy="154" r="3.5" fill="#042F2E"/>
+  <path d="M 149 156 L 151 156 L 152 164 L 148 164 Z" fill="#042F2E"/>
+
+  <!-- On-Device Signal Pulse -->
+  <circle cx="106" cy="106" r="4" fill="#34D399"/>
+</svg>

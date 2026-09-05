@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181D26"/>
+      <stop offset="100%" stop-color="#0E1117"/>
+    </linearGradient>
+
+    <!-- Aurora Ribbon Gradient -->
+    <linearGradient id="auroraGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="45%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+
+    <!-- Spark Glow -->
+    <radialGradient id="sparkGlow512" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#A7F3D0" stop-opacity="1"/>
+      <stop offset="50%" stop-color="#10B981" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Specular Border -->
+    <linearGradient id="borderGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Canvas -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad512)" stroke="url(#borderGrad512)" stroke-width="4"/>
+
+  <!-- Inward Aperture Ribbon -->
+  <path d="M 160 360 
+           L 160 216 
+           C 160 160, 196 128, 248 128 
+           L 304 128 
+           C 344 128, 368 152, 368 192 
+           C 368 240, 328 272, 280 272 
+           L 240 272
+           C 208 272, 192 288, 192 320 
+           L 192 360"
+        fill="none" 
+        stroke="url(#auroraGrad512)" 
+        stroke-width="32" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+
+  <!-- Secondary Memory Arc -->
+  <path d="M 232 384 
+           L 320 384 
+           C 360 384, 384 360, 384 320 
+           L 384 272"
+        fill="none" 
+        stroke="#6366F1" 
+        stroke-opacity="0.45"
+        stroke-width="24" 
+        stroke-linecap="round"/>
+
+  <!-- Central Preserved Spark -->
+  <circle cx="280" cy="200" r="44" fill="url(#sparkGlow512)"/>
+  <circle cx="280" cy="200" r="16" fill="#FFFFFF"/>
+</svg>

@@ -424,22 +424,53 @@ android/app/src/main/kotlin/com/example/whatsapp_status_saver/
 ### 8.2 Component Responsibilities
 
 #### 1. `SafStorageManager`
-- Validates persisted URI permissions against the specific target:
-  - Ensures the URI matches `com.android.externalstorage.documents` and points to the WhatsApp Media folder.
-  - Verifies read validity by testing if `ContentResolver` can open the tree without throwing `SecurityException`.
-- Builds initial URI intent for `ACTION_OPEN_DOCUMENT_TREE`:
-  ```kotlin
-  val initialUri = DocumentsContract.buildDocumentUri(
-      "com.android.externalstorage.documents",
-      "primary:Android/media/com.whatsapp/WhatsApp/Media"
-  )
-  ```
-- Takes persistable read permissions: `FLAG_GRANT_READ_URI_PERMISSION`.
+- **Advisory Initial URI Navigation Strategy:**
+  - Guides DocumentsUI toward the WhatsApp Media folder without assuming compliance.
+  - In Android documentation, `DocumentsContract.EXTRA_INITIAL_URI` accepts:
+    - A document URI: `DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", "$volumeId:Android/media/com.whatsapp/WhatsApp/Media")`
+    - A tree URI: `DocumentsContract.buildTreeDocumentUri("com.android.externalstorage.documents", "$volumeId:Android/media/com.whatsapp/WhatsApp/Media")`
+  - **Advisory Rule:** `EXTRA_INITIAL_URI` is strictly advisory. DocumentsUI may ignore it, open at the storage root, or fall back to recents depending on OEM customizations and OS version. The application must never assume DocumentsUI honors this hint.
+- **Dynamic Storage Volume Resolution:**
+  - Do NOT assume `"primary:"` is universally the active storage volume.
+  - The native layer inspects `StorageManager.storageVolumes` (API 24+) or `context.getExternalFilesDirs(null)`:
+    - Primary volume: uses `"primary"` if `StorageVolume.isPrimary` is true.
+    - Removable/Adoptable storage: derives the active volume UUID (e.g. `"1A2B-3C4D"`).
+    - If provider or storage root is unavailable, omits `EXTRA_INITIAL_URI` gracefully, launching `ACTION_OPEN_DOCUMENT_TREE` without crashing.
+- **Persisting Read Permission:**
+  - Takes persistable read permission: `ContentResolver.takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)`.
+  - Write permission on WhatsApp directory is **never** requested or required.
+- **SAF Target Validation Contract (7-Step Contract):**
+  1. *URI Sanity Check:* Verify scheme is `"content"` and `DocumentsContract.isTreeUri(selectedTreeUri) == true`.
+  2. *Extract Tree Document ID:* Call `DocumentsContract.getTreeDocumentId(selectedTreeUri)`. Catch any `IllegalArgumentException` and return `INVALID`.
+  3. *Determine Logical Identity:* Parse document ID (e.g. `<volume>:<path>`). Note that document IDs are provider-opaque strings; string heuristics must be confirmed through `ContentResolver` queries.
+  4. *Resolve WhatsApp Hierarchy:* Evaluate whether the selected tree is direct `.Statuses`, canonical `Media`, or a supported parent (`WhatsApp`, `com.whatsapp`, `Android/media`).
+  5. *Locate `.Statuses`:* Traverse down using `DocumentsContract.buildChildDocumentsUriUsingTree()` to locate `.Statuses`.
+  6. *Verify Query Capability:* Execute a test cursor query on `.Statuses` via `ContentResolver.query()` with projection `arrayOf(Document.COLUMN_DOCUMENT_ID, Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE)`.
+  7. *Classify Result Status:*
+     - `VALID`: Direct `.Statuses` or `WhatsApp/Media` folder selected and verified readable.
+     - `VALID_PARENT`: Ancestor directory (`WhatsApp`, `com.whatsapp`, `Android/media`) selected and traversal successfully resolved `.Statuses`.
+     - `INVALID`: Unrelated folder (e.g. `Download`, `DCIM`, storage root) where hierarchy cannot be resolved.
+     - `UNAVAILABLE`: Correct WhatsApp folder structure selected, but `.Statuses` is missing (user has not opened WhatsApp or viewed any statuses).
+     - `PERMISSION_REVOKED`: Persisted URI permission was revoked in Settings or cleared by OS.
+- **User Selection Variants Handling Matrix:**
+  - *Variant A (`.../WhatsApp/Media`):* `VALID` -> Accepted (Canonical target).
+  - *Variant B (`.../WhatsApp/Media/.Statuses`):* `VALID` -> Accepted (Direct target).
+  - *Variant C (`.../WhatsApp`):* `VALID_PARENT` -> Accepted as parent; traverses to `Media/.Statuses`.
+  - *Variant D (`.../com.whatsapp`):* `VALID_PARENT` -> Accepted as parent; traverses to `WhatsApp/Media/.Statuses`.
+  - *Variant E (`.../Android/media`):* `VALID_PARENT` -> Accepted as parent (if OEM picker allows); traverses to `.Statuses`.
+  - *Variant F (Unrelated folder `DCIM`, `Download`):* `INVALID` -> Rejected. User message: *"Incorrect folder selected. Please select WhatsApp Media."* Retry launches picker with visual guide.
+  - *Variant G (Storage root `primary:`):* `INVALID` -> Rejected. User message: *"Entire storage root cannot be used. Please choose WhatsApp Media."*
+  - *Variant H (Missing WhatsApp directory):* `UNAVAILABLE` -> Rejected. User message: *"WhatsApp Status folder not found. View a status in WhatsApp first."*
+  - *Variant I (WhatsApp uninstalled):* `UNAVAILABLE` -> Rejected. User message: *"WhatsApp is not installed on this device."*
+  - *Variant J (Permission revoked):* `PERMISSION_REVOKED` -> Rejected. User message: *"Folder access was revoked. Please reconnect."* Clear stale URI and prompt reconnection.
+- **Limitations of Provider-Specific Path Identity:**
+  - SAF document IDs are opaque strings assigned by `ExternalStorageProvider`.
+  - The application avoids relying solely on string matching (e.g. `.contains(".Statuses")`) and always validates tree accessibility by executing cursor queries via `ContentResolver`.
 
 #### 2. `StatusDocumentReader`
 - Resolves the `.Statuses` directory deterministically:
-  - Direct target docId calculation: `"$treeDocId/.Statuses"`.
-  - Fallback: bounded single-level scan of direct children of the tree for `.Statuses` if direct path fails.
+  - Direct target docId calculation: `"$treeDocId/.Statuses"` (or resolved relative path for parent trees).
+  - Fallback: bounded traversal of direct children of the tree for `.Statuses`.
 - Direct `ContentResolver.query()` using `DocumentsContract.buildChildDocumentsUriUsingTree()` with projection:
   ```kotlin
   val projection = arrayOf(
@@ -463,21 +494,33 @@ android/app/src/main/kotlin/com/example/whatsapp_status_saver/
   3. On success: update `IS_PENDING = 0`.
   4. On failure: catch exception, delete the pending row via `contentResolver.delete(targetUri, null, null)` to prevent corrupt 0-byte orphan files in the user's gallery, and throw structured error.
 
-#### 4. `ThumbnailManager`
-- Problem: Full-resolution status photos can be 5–15 MB. Loading dozens in a grid would cause Out-Of-Memory (OOM) crashes.
-- Strategy:
-  - Generate a 256x256 thumbnail using `BitmapFactory.Options.inSampleSize` from `ContentResolver.openFileDescriptor(documentUri, "r")`.
-  - Compress thumbnail as WebP (or JPEG 85%) into internal app cache: `context.cacheDir/thumbnails/<docIdHash>.webp`.
-  - Cache lookup: if file exists and modification timestamp matches, return cached path immediately without re-decoding.
-  - Returns local filesystem path to Flutter. Flutter renders via `Image.file()` with automatic OS memory caching.
+#### 4. `ThumbnailManager` (Disk & RAM Thumbnail Architecture)
+- **Problem:** Full-resolution status photos can be 5–15 MB. Loading dozens in a grid would cause Out-Of-Memory (OOM) crashes.
+- **Disk Thumbnail Cache:**
+  - **Owner:** `ThumbnailManager.kt`.
+  - **Location:** `context.cacheDir/thumbnails/` (canonical location).
+  - **Quota:** **100 MB maximum**.
+  - **Eviction Policy:** **LRU** (Least Recently Used) based on file `lastModified` / access time. When cache directory exceeds 100 MB, files are deleted in ascending access order until total size drops to <= 80 MB (20% hysteresis buffer).
+  - **Generation Strategy:** Decode 256x256 thumbnail using `BitmapFactory.Options.inSampleSize` from `ContentResolver.openFileDescriptor(documentUri, "r")`. Compress to WebP (or JPEG 85%) as `cacheDir/thumbnails/<docIdHash>.webp`.
+  - **Cache Lookup:** If file exists and modification timestamp matches, return cached path immediately without re-decoding.
+- **RAM Thumbnail Cache:**
+  - **Owner:** Flutter Presentation Layer (`PaintingBinding.instance.imageCache`).
+  - **Capacity:** **35 MB maximum**.
+  - **Eviction Policy:** LRU managed by Flutter `ImageCache.maximumSizeBytes = 35 * 1024 * 1024`.
+- **User Reporting & Management:** Reported in Settings as *"Thumbnail Cache: XX MB (Max 100 MB)"*.
 
-#### 5. `VideoCacheManager`
-- Problem: Playing videos directly through `content://` URIs via SAF in Flutter `video_player` (ExoPlayer) often fails random seeks, triggers slow buffering, or drops playback when switching app focus.
-- Strategy:
-  - When the user taps a video to open the viewer, the native layer streams the MP4 into `context.cacheDir/videos/<docIdHash>.mp4`.
-  - Because status videos are short (WhatsApp max length: 30–60 seconds, typically 1–10 MB), copying takes < 100 ms on modern storage.
-  - Video player opens the local file directly, providing 100% smooth, hardware-accelerated playback with instantaneous seeking.
-  - Cache eviction: FIFO cache with 50 MB total quota.
+#### 5. `VideoCacheManager` (Video Playback Stream Cache)
+- **Problem:** Playing videos directly through `content://` URIs via SAF in Flutter `video_player` (ExoPlayer) often fails random seeks, triggers slow buffering, or drops playback on backgrounding.
+- **Video Playback Cache:**
+  - **Owner:** `VideoCacheManager.kt`.
+  - **Location:** `context.cacheDir/videos/` (canonical location).
+  - **Quota:** **100 MB maximum**.
+  - **Eviction Policy:** **Bounded LRU Eviction Strategy** based on file access timestamp. When streaming a new video would push cache over 100 MB, least recently accessed video cache files are evicted until size drops to <= 75 MB. (LRU prevents evicting actively looped or re-watched statuses).
+  - **Streaming Strategy:** Stream MP4 bytes from SAF `InputStream` to `context.cacheDir/videos/<docIdHash>.mp4` on `Dispatchers.IO`. Status videos (1–10 MB, 30–60s) transfer in < 100 ms on modern storage.
+  - **Playback:** Returns local filesystem path to Flutter. `VideoPlayerController.file()` initializes hardware-accelerated playback with instantaneous seek bar response.
+- **User Reporting & One-Tap Clear:**
+  - Reported in Settings as *"Video Playback Cache: XX MB (Max 100 MB)"*.
+  - *"Clear Temporary Caches"* in Settings triggers `clearCache()` on the platform channel, purging both `cacheDir/thumbnails/` and `cacheDir/videos/` with zero effect on saved gallery media.
 
 ---
 
@@ -722,7 +765,10 @@ Users may run:
 2. **Direct ContentResolver Queries:** Cursor query with column projection avoids the catastrophic N+1 query overhead of `DocumentFile.fromTreeUri()`.
 3. **Background Concurrency:** All disk and ContentResolver I/O runs on `Dispatchers.IO` in Kotlin and background isolates/futures in Dart.
 4. **Video Seeking:** Local cache file streaming avoids SAF pipe buffer stalls during video scrubbing.
-5. **Memory Quota:** Thumbnail cache is limited to 100 MB; video cache is limited to 50 MB with automatic LRU eviction.
+5. **Authoritative Cache Budgets & Eviction Strategy:**
+   - **RAM Thumbnail Cache:** 35 MB maximum (managed via Flutter `ImageCache`, LRU eviction).
+   - **Disk Thumbnail Cache:** 100 MB maximum (`context.cacheDir/thumbnails/`, LRU eviction targeting 80 MB upon exceeding quota).
+   - **Video Playback Cache:** 100 MB maximum (`context.cacheDir/videos/`, bounded LRU eviction targeting 75 MB upon exceeding quota).
 
 ---
 
@@ -768,15 +814,16 @@ Users may run:
 Detailed ADR documents are recorded under `docs/decisions/`:
 
 1. [ADR 001: Storage Access Framework (SAF) for Status Discovery](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/001-saf-media-discovery.md)
-   - *Decision:* Use SAF `ACTION_OPEN_DOCUMENT_TREE` with `EXTRA_INITIAL_URI` and persisted URI permissions. Direct file access is blocked on Android 11–16, and MediaStore ignores hidden `.Statuses`.
+   - *Decision:* Use SAF `ACTION_OPEN_DOCUMENT_TREE` with advisory `EXTRA_INITIAL_URI` (dynamically derived) and persisted URI permissions. Direct file access is blocked on Android 11–16, and MediaStore ignores hidden `.Statuses`. Validate returned tree and handle selection variants dynamically.
 2. [ADR 002: Zero-Permission MediaStore Saving with Atomic Rollback](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/002-mediastore-zero-permission-export.md)
    - *Decision:* Native Kotlin `MediaStoreSaver` inserts directly into `MediaStore.Images` and `MediaStore.Video` using `IS_PENDING = 1` and cleans up via `contentResolver.delete()` on error.
 3. [ADR 003: Deferral of Drift / SQLite Database for Phase 2](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/003-defer-drift-database.md)
    - *Decision:* Avoid heavy database dependencies and code generation for Phase 2. Use `shared_preferences` and lightweight JSON files behind an abstract `SavedMediaRepository`.
 4. [ADR 004: Native Background Thumbnail Downsampling via BitmapFactory](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/004-bitmap-factory-thumbnail-pipeline.md)
-   - *Decision:* Target 256x256 WebP thumbnails on background threads using `BitmapFactory` `inSampleSize` to prevent Out-Of-Memory errors during grid scrolling.
+   - *Decision:* Target 256x256 WebP thumbnails on background threads using `BitmapFactory` `inSampleSize` to prevent Out-Of-Memory errors during grid scrolling (100 MB disk limit, 35 MB RAM limit).
 5. [ADR 005: On-Demand Video Cache Streaming for Playback](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/005-video-cache-streaming.md)
-   - *Decision:* Stream status videos to an app cache file (`cacheDir/videos/`) before opening with `video_player`, ensuring seamless seek bar responsiveness and zero SAF pipe drops.
+   - *Decision:* Stream status videos to an app cache file (`cacheDir/videos/`) before opening with `video_player`, ensuring seamless seek bar responsiveness and zero SAF pipe drops (bounded 100 MB LRU disk cache).
 6. [ADR 006: Opaque String Identifiers across the Platform Boundary](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/006-opaque-id-platform-boundary.md)
    - *Decision:* The domain model uses an opaque `String id` so the UI never touches Android `content://` URIs or document IDs.
+
 

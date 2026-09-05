@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 432 432" width="432" height="432">
+  <defs>
+    <!-- Master Background Obsidian -->
+    <linearGradient id="bgObsidian" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#141820"/>
+      <stop offset="100%" stop-color="#090B0E"/>
+    </linearGradient>
+
+    <!-- Ambient Aurora Sheen in Center -->
+    <radialGradient id="auroraSheen" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.12"/>
+      <stop offset="50%" stop-color="#6366F1" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Solid Obsidian Canvas -->
+  <rect width="432" height="432" fill="url(#bgObsidian)"/>
+
+  <!-- Ambient Light Ellipse -->
+  <rect width="432" height="432" fill="url(#auroraSheen)"/>
+</svg>

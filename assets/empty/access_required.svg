@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 450" width="500" height="450">
+  <defs>
+    <!-- Background Canvas -->
+    <radialGradient id="arBg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#181D26"/>
+      <stop offset="60%" stop-color="#0F1218"/>
+      <stop offset="100%" stop-color="#090B0E"/>
+    </radialGradient>
+
+    <!-- Keyhole Beacon Glow -->
+    <radialGradient id="doorGlow" cx="50%" cy="45%" r="50%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#6366F1" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Vault Door Gradient -->
+    <linearGradient id="doorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2D3748"/>
+      <stop offset="100%" stop-color="#1A202C"/>
+    </linearGradient>
+
+    <!-- Vault Frame -->
+    <linearGradient id="doorFrame" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="500" height="450" rx="28" fill="url(#arBg)"/>
+
+  <!-- Keyhole Radiant Beacon in Background -->
+  <circle cx="250" cy="210" r="140" fill="url(#doorGlow)"/>
+
+  <!-- Vault Portal Arch / Frame -->
+  <path d="M 160 350 L 160 190 C 160 140, 200 100, 250 100 C 300 100, 340 140, 340 190 L 340 350 Z" 
+        fill="#12151C" stroke="url(#doorFrame)" stroke-width="2.5"/>
+
+  <!-- Inner Vault Door -->
+  <path d="M 175 340 L 175 195 C 175 152, 208 118, 250 118 C 292 118, 325 152, 325 195 L 325 340 Z" 
+        fill="url(#doorGrad)" stroke="#4A5568" stroke-width="1.5"/>
+
+  <!-- Heavy Vault Hinges -->
+  <rect x="156" y="180" width="12" height="24" rx="4" fill="#4A5568"/>
+  <rect x="156" y="280" width="12" height="24" rx="4" fill="#4A5568"/>
+
+  <!-- Center Circular Lock Mechanism -->
+  <circle cx="250" cy="225" r="38" fill="#1A202C" stroke="#10B981" stroke-width="2.5"/>
+  <circle cx="250" cy="225" r="28" fill="#10B981" fill-opacity="0.15"/>
+
+  <!-- Radiant Keyhole Symbol -->
+  <circle cx="250" cy="218" r="7" fill="#34D399"/>
+  <path d="M 247 222 L 253 222 L 255 236 L 245 236 Z" fill="#34D399"/>
+
+  <!-- Concentric Authorization Waves -->
+  <circle cx="250" cy="225" r="54" fill="none" stroke="#10B981" stroke-opacity="0.25" stroke-dasharray="4 4"/>
+  <circle cx="250" cy="225" r="72" fill="none" stroke="#6366F1" stroke-opacity="0.15" stroke-dasharray="6 6"/>
+
+  <!-- Floor Horizon Reflection -->
+  <line x1="100" y1="350" x2="400" y2="350" stroke="#374151" stroke-width="1.5"/>
+</svg>

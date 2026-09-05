@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 450" width="500" height="450">
+  <defs>
+    <!-- Background Canvas -->
+    <radialGradient id="nsbBg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#181D26"/>
+      <stop offset="60%" stop-color="#0F1218"/>
+      <stop offset="100%" stop-color="#090B0E"/>
+    </radialGradient>
+
+    <!-- Keepsake Interior Glow -->
+    <radialGradient id="boxGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34D399" stop-opacity="0.4"/>
+      <stop offset="50%" stop-color="#10B981" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Chest Gradient -->
+    <linearGradient id="chestGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2D3748"/>
+      <stop offset="100%" stop-color="#1A202C"/>
+    </linearGradient>
+
+    <!-- Chest Lid Gradient -->
+    <linearGradient id="lidGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#4A5568"/>
+      <stop offset="100%" stop-color="#2D3748"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="500" height="450" rx="28" fill="url(#nsbBg)"/>
+
+  <!-- Interior Luminous Aura -->
+  <circle cx="250" cy="220" r="120" fill="url(#boxGlow)"/>
+
+  <!-- Open Keepsake Box / Vault Base -->
+  <g transform="translate(140, 180)">
+    <!-- Open Lid (Angled Upwards) -->
+    <path d="M 10 30 L 210 30 L 230 -20 L 30 -20 Z" fill="url(#lidGrad)" stroke="#718096" stroke-width="2"/>
+    <!-- Lid Interior Rim -->
+    <line x1="30" y1="-20" x2="230" y2="-20" stroke="#10B981" stroke-width="2" stroke-opacity="0.6"/>
+
+    <!-- Chest Lower Box -->
+    <rect x="10" y="30" width="200" height="120" rx="14" fill="url(#chestGrad)" stroke="#4A5568" stroke-width="2"/>
+    <!-- Metal Band Insets -->
+    <rect x="36" y="30" width="16" height="120" fill="#1A202C"/>
+    <rect x="168" y="30" width="16" height="120" fill="#1A202C"/>
+
+    <!-- Keyhole / Front Escutcheon Plate -->
+    <rect x="98" y="55" width="24" height="32" rx="6" fill="#10B981"/>
+    <circle cx="110" cy="68" r="3.5" fill="#042F2E"/>
+    <path d="M 109 70 L 111 70 L 112 78 L 108 78 Z" fill="#042F2E"/>
+
+    <!-- Floating Empty Bookmark Ribbon Inside Chest -->
+    <path d="M 80 20 L 80 -10 L 95 0 L 110 -10 L 110 20 Z" fill="#6366F1" fill-opacity="0.6" stroke="#818CF8" stroke-width="1.5"/>
+
+    <!-- Gentle Spark of Hope -->
+    <circle cx="110" cy="15" r="5" fill="#34D399"/>
+  </g>
+
+  <!-- Constellation of Star Dust -->
+  <circle cx="160" cy="120" r="3" fill="#6EE7B7"/>
+  <circle cx="340" cy="110" r="4" fill="#818CF8"/>
+  <circle cx="370" cy="160" r="2.5" fill="#10B981"/>
+</svg>

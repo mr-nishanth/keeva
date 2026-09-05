@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 432 432" width="432" height="432">
+  <defs>
+    <!-- Aurora Gradient -->
+    <linearGradient id="iconAurora" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="45%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+
+    <!-- Spark Glow -->
+    <radialGradient id="iconSparkGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#A7F3D0" stop-opacity="1"/>
+      <stop offset="50%" stop-color="#10B981" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Frame Border Sheen -->
+    <linearGradient id="iconFrameBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+    </linearGradient>
+
+    <!-- Inner Plate -->
+    <linearGradient id="iconPlateBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#222834"/>
+      <stop offset="100%" stop-color="#141820"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Centered Iconic Symbol within 240dp Safe Area -->
+  <g transform="translate(106, 106)">
+    <!-- Inner Visual Plate (220x220) -->
+    <rect width="220" height="220" rx="56" fill="url(#iconPlateBg)" stroke="url(#iconFrameBorder)" stroke-width="2.5"/>
+
+    <!-- Inward Aperture Ribbon -->
+    <path d="M 78 174 
+             L 78 106 
+             C 78 78, 96 62, 122 62 
+             L 148 62 
+             C 168 62, 180 74, 180 94 
+             C 180 116, 160 132, 136 132 
+             L 116 132
+             C 102 132, 94 140, 94 154 
+             L 94 174"
+          fill="none" 
+          stroke="url(#iconAurora)" 
+          stroke-width="15" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+
+    <!-- Secondary Accent Arc -->
+    <path d="M 114 186 
+             L 156 186 
+             C 176 186, 188 174, 188 154 
+             L 188 132"
+          fill="none" 
+          stroke="#6366F1" 
+          stroke-opacity="0.45"
+          stroke-width="12" 
+          stroke-linecap="round"/>
+
+    <!-- The Luminous Preserved Spark -->
+    <circle cx="136" cy="98" r="22" fill="url(#iconSparkGlow)"/>
+    <circle cx="136" cy="98" r="8" fill="#FFFFFF"/>
+  </g>
+</svg>
