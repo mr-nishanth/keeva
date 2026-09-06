@@ -1,38 +1,65 @@
 # Keeva Design System Specification
 
-**Product:** Keeva (WhatsApp Status Saver → Premium Independent Identity)  
-**Document Status:** Production Design System Specification  
-**Phase:** Phase 2E-A (UI/UX Design System Discovery & Specification)  
-**Theme:** Quiet Obsidian + Aurora Mint  
-**Platform Target:** Android-First (Primary), iOS-Compatible (Secondary)  
-**Date:** September 2026  
+**Product:** Keeva (WhatsApp Status Saver → Premium Independent Identity)
+**Document Status:** Production Design System Specification
+**Phase:** Phase 2E-A (UI/UX Design System Discovery & Specification)
+**Theme:** Quiet Obsidian + Aurora Mint
+**Platform Target:** Android-First (Primary), iOS-Compatible (Secondary)
+**Date:** September 2026
 
 ---
 
 ## 1. Executive Summary & Brand Identity
 
-Keeva is a private, calm, media-first keeper for temporary moments.
+Keeva is a private, calm, media-first keeper for temporary moments, engineered by Nishvanta Labs.
 
 ```text
-Product Name:     Keeva
-Brand Tagline:    Keep the moments that matter.
-Design Metaphor:  Quiet Obsidian Media Vault
-Core Experience:  Discover → Preview → Keep
-Signature Action: "Keep" (Never "Download" or "Save to Disk")
+Parent Organization: Nishvanta Labs
+Company Tagline:     Technology You Can Trust.
+Product Name:        Keeva
+Product Tagline:     Keep the moments that matter.
+Design Metaphor:     Quiet Obsidian Media Vault
+Core Experience:     Discover → Preview → Keep
+Signature Action:    "Keep" (Never "Download" or "Save to Disk")
 ```
 
-### 1.1 Brand Personality & Tone
+### 1.1 Brand Relationship & Hierarchy
+
+```text
+Nishvanta Labs (Parent / Creator Identity)
+    │
+    └── Keeva (Consumer Product Identity)
+```
+
+- **Hierarchy Rule:** "Nishvanta Labs builds Keeva" (not *"Keeva is a feature of Nishvanta Labs"*).
+- **Product Autonomy:** Keeva operates independently as a consumer-facing product mark in mobile launchers, notifications, and application stores.
+- **Creator Endorsement:** Nishvanta Labs provides organizational attribution in About screens, repository metadata, and open-source documentation.
+
+### 1.2 Brand Personality & Tone
 * **Calm:** Zero flashing badges, banner ads, high-saturation red warnings, or pushy prompts.
 * **Private:** Local-first, zero internet permissions in production, transparent Storage Access Framework (SAF) folder isolation.
-* **Premium:** Obsidian deep blacks, subtle 1px border crispness, fluid 120Hz spring physics, and restrained typography.
+* **Premium:** Obsidian deep blacks (`#090B0E`), subtle 1px border crispness, fluid 120Hz spring physics, and restrained typography.
 * **Fast:** 8.3ms active frame budget, instant native thumbnails, zero UI isolate blocking.
 * **Trustworthy:** Honest technical boundaries, plain human language, clear security assurances.
 
-### 1.2 Anti-Patterns (What Keeva is NOT)
+### 1.3 Anti-Patterns (What Keeva & Nishvanta Labs are NOT)
 * **NOT a WhatsApp clone:** No WhatsApp green (`#25D366`), no chat bubbles, no contact lists, no social styling.
 * **NOT a generic file manager:** No raw paths, no hierarchical directory trees, no MIME-type lists.
 * **NOT a download utility:** No downloading arrows, progress percentages in notification trays, or "downloader" branding.
-* **NOT an ad-supported tool:** Zero ad banners, interstitial popups, or rating coercion.
+* **NOT generic AI / crypto styling:** No generic AI brain icons, circuit lines, sheriff shields, padlock badges, or isometric cryptocurrency cubes.
+
+### 1.4 Logo System, Clear Space & Sizing
+* **Keeva Symbol:** 512×512 Squircle plate with continuous Inward Aperture Ribbon (`#34D399` → `#10B981` → `#6366F1`) and gleaming Preserved Spark at `(280, 200)`.
+* **Nishvanta Labs Monogram:** 512×512 Geometric continuous "N" ribbon (`#818CF8` → `#6366F1` → `#4338CA`) with forward momentum beacon at `(352, 152)`.
+* **Clear Space:** Maintain a minimum clear boundary of `0.5H` on all four sides of each mark.
+* **Minimum Rendering Sizing:**
+  - `16px`: System tray / favicons (monochrome silhouette without plate container).
+  - `24px`: In-app navigation icons.
+  - `48px`: App bar branding.
+  - `64px`: Onboarding hero badge.
+  - `512px`: Launcher store icon and vector canvas.
+* **Monochrome Usage:** Both marks feature dedicated single-color dark (`#090B0E`) and reversed white (`#FFFFFF`) silhouette SVGs for monochrome printing, watermarks, and Android 13+ themed icon surfaces.
+* **Misuse Rules:** Do not stretch, do not rotate, do not apply unapproved colors, do not add heavy blurred shadows, and do not merge the two marks into a hybrid glyph.
 
 ---
 
@@ -55,7 +82,7 @@ Before formalizing the token architecture, three distinct visual directions were
 └──────────────────────────────┴──────────────────────────────┴───────────────────────────────┘
 ```
 
-![Keeva Design Exploration Board](/Users/nishanth/.gemini/antigravity-ide/brain/c519feab-663c-470c-9ba5-f57fd15ac586/keeva_visual_exploration_1788610881108.jpg)
+![Keeva Design Exploration Board](assets/keeva_visual_exploration.jpg)
 
 ### Evaluation Summary
 
@@ -138,8 +165,8 @@ CANVAS & SURFACES                   PRIMARY (AURORA MINT)          ACCENT (AUROR
 
 ## 4. Typography System
 
-**Typeface:** Plus Jakarta Sans  
-**System Fallbacks:** `system-ui`, `Roboto`, `Helvetica Neue`, `sans-serif`  
+**Typeface:** Plus Jakarta Sans
+**System Fallbacks:** `system-ui`, `Roboto`, `Helvetica Neue`, `sans-serif`
 **Characteristics:** Geometric foundation, wide x-height, open apertures, rendering clarity on ultra-dense screens (>= 440 PPI).
 
 ### 4.1 Type Scale Tokens

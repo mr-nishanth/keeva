@@ -2,26 +2,34 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="432"
-    android:viewportHeight="432">
+    android:viewportWidth="512"
+    android:viewportHeight="512">
 
-    <!-- Inward Aperture Ribbon Silhouette -->
+    <!-- Ambient Spark Halo Silhouette -->
     <path
-        android:pathData="M 184,280 L 184,212 C 184,184 202,168 228,168 L 254,168 C 274,168 286,180 286,200 C 286,222 266,238 242,238 L 222,238 C 208,238 200,246 200,260 L 200,280"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="16"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
+        android:pathData="M 280,156 A 44,44 0 1,1 279.9,156 Z"
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.2" />
+
+    <!-- Core Gleaming Spark Beacon -->
+    <path
+        android:pathData="M 280,184 A 16,16 0 1,1 279.9,184 Z"
+        android:fillColor="#FFFFFF" />
 
     <!-- Secondary Accent Arc Silhouette -->
     <path
-        android:pathData="M 220,292 L 262,292 C 282,292 294,280 294,260 L 294,238"
+        android:pathData="M 232,384 L 320,384 C 360,384 384,360 384,320 L 384,272"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="12"
+        android:strokeWidth="24"
+        android:strokeAlpha="0.5"
         android:strokeLineCap="round" />
 
-    <!-- Preserved Spark Core -->
+    <!-- Inward Aperture Ribbon Silhouette -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M 242,192 A 12,12 0 1,1 241.9,192 Z" />
+        android:pathData="M 160,360 L 160,216 C 160,160 196,128 248,128 L 304,128 C 344,128 368,152 368,192 C 368,240 328,272 280,272 L 240,272 C 208,272 192,288 192,320 L 192,360"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="32"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
 </vector>

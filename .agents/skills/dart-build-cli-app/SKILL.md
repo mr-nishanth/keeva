@@ -2,7 +2,6 @@
 name: dart-build-cli-app
 description: Entrypoint structure, exit codes, cross-platform scripts. Use when building command line utilities, scripts, or applications.
 metadata:
-  model: models/gemini-3.1-pro-preview
   last_modified: Fri, 04 May 2026 17:41:00 GMT
 ---
 # Building Dart CLI Applications

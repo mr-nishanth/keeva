@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="720" height="180">
+  <defs>
+    <linearGradient id="nvTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#F3F4F6"/>
+      <stop offset="100%" stop-color="#E5E7EB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Primary Company Wordmark -->
+  <text x="32" y="100"
+        font-family="-apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, sans-serif"
+        font-size="60"
+        font-weight="800"
+        letter-spacing="6"
+        fill="url(#nvTextGrad)">NISHVANTA LABS</text>
+
+  <!-- Company Tagline -->
+  <text x="36" y="146"
+        font-family="-apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, sans-serif"
+        font-size="20"
+        font-weight="500"
+        letter-spacing="1.2"
+        fill="#9CA3AF">Technology You Can Trust.</text>
+
+  <!-- Subtle Accent Dot -->
+  <circle cx="692" cy="74" r="6" fill="#6366F1"/>
+</svg>

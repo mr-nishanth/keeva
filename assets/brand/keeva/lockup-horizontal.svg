@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 240" width="800" height="240">
+  <defs>
+    <!-- Mark Background Gradient -->
+    <linearGradient id="markBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181D26"/>
+      <stop offset="100%" stop-color="#0E1117"/>
+    </linearGradient>
+
+    <!-- Aurora Ribbon Gradient -->
+    <linearGradient id="auroraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="45%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+
+    <!-- Spark Glow -->
+    <radialGradient id="sparkGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#A7F3D0" stop-opacity="1"/>
+      <stop offset="50%" stop-color="#10B981" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+    </linearGradient>
+
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E5E7EB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Left: Logo Mark Container (180x180) -->
+  <g transform="translate(30, 30)">
+    <rect width="180" height="180" rx="46" fill="url(#markBgGrad)" stroke="url(#borderGrad)" stroke-width="2"/>
+
+    <!-- Spark Glow and Core -->
+    <circle cx="112" cy="80" r="18" fill="url(#sparkGlow)"/>
+    <circle cx="112" cy="80" r="6.5" fill="#FFFFFF"/>
+
+    <!-- Secondary Arc -->
+    <path d="M 94 154
+             L 128 154
+             C 144 154, 154 144, 154 128
+             L 154 110"
+          fill="none"
+          stroke="#6366F1"
+          stroke-opacity="0.7"
+          stroke-width="10"
+          stroke-linecap="round"/>
+
+    <!-- Inward Aperture Ribbon -->
+    <path d="M 64 144
+             L 64 88
+             C 64 66, 78 52, 98 52
+             L 120 52
+             C 136 52, 146 62, 146 78
+             C 146 96, 130 110, 112 110
+             L 96 110
+             C 84 110, 78 116, 78 128
+             L 78 144"
+          fill="none"
+          stroke="url(#auroraGrad)"
+          stroke-width="13"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+
+  <!-- Right: Typography Lockup -->
+  <g transform="translate(250, 0)">
+    <text x="0" y="142"
+          font-family="-apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, sans-serif"
+          font-size="94"
+          font-weight="700"
+          letter-spacing="-1.5"
+          fill="url(#textGrad)">Keeva</text>
+
+    <text x="4" y="184"
+          font-family="-apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, sans-serif"
+          font-size="15"
+          font-weight="600"
+          letter-spacing="5"
+          fill="#10B981">PRIVATE MOMENTS KEEPER</text>
+
+    <!-- Visual Spark Accent -->
+    <circle cx="282" cy="86" r="7" fill="#10B981"/>
+  </g>
+</svg>

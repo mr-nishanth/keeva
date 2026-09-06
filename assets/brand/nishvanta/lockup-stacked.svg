@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 540" width="440" height="540">
+  <defs>
+    <!-- Mark Background Gradient -->
+    <linearGradient id="nvMarkBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181D26"/>
+      <stop offset="100%" stop-color="#0E1117"/>
+    </linearGradient>
+
+    <!-- Outer Border Sheen -->
+    <linearGradient id="nvBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+    </linearGradient>
+
+    <!-- Geometric N Gradient -->
+    <linearGradient id="nvNGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8"/>
+      <stop offset="45%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#4338CA"/>
+    </linearGradient>
+
+    <!-- Forward Beacon Radial Glow -->
+    <radialGradient id="nvBeaconGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#A7F3D0" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#10B981" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="nvTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E5E7EB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Top: Centered Logo Mark (220x220) at (110, 40) -->
+  <g transform="translate(110, 40)">
+    <rect width="220" height="220" rx="55" fill="url(#nvMarkBgGrad)" stroke="url(#nvBorderGrad)" stroke-width="2.2"/>
+
+    <!-- Forward Beacon -->
+    <circle cx="151" cy="65" r="12" fill="url(#nvBeaconGlow)"/>
+    <circle cx="151" cy="65" r="4" fill="#FFFFFF"/>
+
+    <!-- Geometric N Ribbon Scaled -->
+    <path d="M 69 155
+             L 69 69
+             C 69 61, 75 58, 82 63
+             L 138 144
+             C 145 149, 151 145, 151 138
+             L 151 65"
+          fill="none"
+          stroke="url(#nvNGrad)"
+          stroke-width="19"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+
+  <!-- Bottom: Centered Typography Stack -->
+  <g transform="translate(220, 360)">
+    <!-- Wordmark centered at x=0 -->
+    <text x="0" y="44"
+          text-anchor="middle"
+          font-family="-apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, sans-serif"
+          font-size="44"
+          font-weight="800"
+          letter-spacing="5"
+          fill="url(#nvTextGrad)">NISHVANTA LABS</text>
+
+    <!-- Tagline centered at x=0 -->
+    <text x="0" y="86"
+          text-anchor="middle"
+          font-family="-apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, sans-serif"
+          font-size="18"
+          font-weight="500"
+          letter-spacing="1"
+          fill="#9CA3AF">Technology You Can Trust.</text>
+  </g>
+</svg>

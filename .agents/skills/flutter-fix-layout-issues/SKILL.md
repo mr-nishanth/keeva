@@ -2,7 +2,6 @@
 name: flutter-fix-layout-issues
 description: Fixes Flutter layout errors (overflows, unbounded constraints) using Dart and Flutter MCP tools. Use when addressing "RenderFlex overflowed", "Vertical viewport was given unbounded height", or similar layout issues.
 metadata:
-  model: models/gemini-3.1-pro-preview
   last_modified: Tue, 21 Apr 2026 19:45:59 GMT
 ---
 # Resolving Flutter Layout Errors
@@ -14,7 +13,7 @@ metadata:
 
 ## Constraint Violation Diagnostics
 
-Flutter layout operates on a strict rule: **Constraints go down. Sizes go up. Parent sets position.** Layout errors occur when this negotiation fails, typically due to unbounded constraints or unconstrained children. 
+Flutter layout operates on a strict rule: **Constraints go down. Sizes go up. Parent sets position.** Layout errors occur when this negotiation fails, typically due to unbounded constraints or unconstrained children.
 
 Diagnose layout failures using the following error signatures:
 
@@ -85,7 +84,7 @@ Column(
 Row(
   children: [
     const Icon(Icons.search),
-    TextField(), 
+    TextField(),
   ],
 )
 ```

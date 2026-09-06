@@ -95,6 +95,7 @@ class PermissionOnboardingScreen extends ConsumerWidget {
                     label: 'Connect Media Folder',
                     leadingIcon: AppIcons.folder,
                     isLoading: isLoading,
+                    isFullWidth: true,
                     onPressed: isLoading
                         ? null
                         : () => ref

@@ -47,7 +47,7 @@ Android media/storage integration is the highest-risk technical area.
 The repository root is:
 
 ```text
-/Users/nishanth/development/whatsapp_status_saver
+<project-root>
 ```
 
 Always treat the current working directory containing this file as the project root.

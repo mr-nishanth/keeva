@@ -1,11 +1,11 @@
 # Keeva UI/UX Screen & Wireframe Specification
 
-**Product:** Keeva (WhatsApp Status Saver → Premium Independent Identity)  
-**Document Status:** Production UI/UX Screen Specification  
-**Phase:** Phase 2E-A (UI/UX Design System Discovery & Specification)  
-**Theme:** Quiet Obsidian + Aurora Mint  
-**Platform Target:** Android-First (Primary), iOS-Compatible (Secondary)  
-**Date:** September 2026  
+**Product:** Keeva (WhatsApp Status Saver → Premium Independent Identity)
+**Document Status:** Production UI/UX Screen Specification
+**Phase:** Phase 2E-A (UI/UX Design System Discovery & Specification)
+**Theme:** Quiet Obsidian + Aurora Mint
+**Platform Target:** Android-First (Primary), iOS-Compatible (Secondary)
+**Date:** September 2026
 
 ---
 
@@ -54,7 +54,7 @@ Keeva is structured around three core destinations:
 
 ### Screen A: Permission Onboarding (First-Run SAF Flow)
 
-![Keeva Onboarding Guide](/Users/nishanth/.gemini/antigravity-ide/brain/c519feab-663c-470c-9ba5-f57fd15ac586/keeva_onboarding_guide_1788610814924.jpg)
+![Keeva Onboarding Guide](assets/keeva_onboarding_guide.jpg)
 
 #### Visual ASCII Layout
 ```
@@ -116,7 +116,7 @@ Keeva is structured around three core destinations:
 
 ### Screen B: Moments Home (Primary Screen)
 
-![Keeva Moments Home](/Users/nishanth/.gemini/antigravity-ide/brain/c519feab-663c-470c-9ba5-f57fd15ac586/keeva_moments_home_1788610782349.jpg)
+![Keeva Moments Home](assets/keeva_moments_home.jpg)
 
 #### Visual ASCII Layout
 ```
@@ -196,7 +196,7 @@ Keeva is structured around three core destinations:
 
 ### Screen D: Full Media Viewer (Immersive Shell)
 
-![Keeva Media Viewer](/Users/nishanth/.gemini/antigravity-ide/brain/c519feab-663c-470c-9ba5-f57fd15ac586/keeva_media_viewer_1788610842602.jpg)
+![Keeva Media Viewer](assets/keeva_media_viewer.jpg)
 
 #### Visual ASCII Layout
 ```

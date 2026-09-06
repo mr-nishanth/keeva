@@ -2,7 +2,6 @@
 name: dart-setup-ffi-assets
 description: "Guides agents in compiling and packaging C/C++ source code into dynamic or static libraries (Code Assets) using Dart's Native Assets hook system (via hook/build.dart and hook/link.dart utilizing package:hooks and package:native_toolchain_c). Use when a user asks to: 'setup native assets', 'compile C/C++ source code', 'bundle dynamic libraries', 'build native C code', 'link native assets', 'implement build.dart or link.dart hooks', or 'integrate C/C++ interop in Dart/Flutter'. Helps agents avoid manual toolchain orchestration and configures secure hash-validated binary downloads or advanced linker tree-shaking with package:record_use mapping."
 metadata:
-  model: models/gemini-3.1-pro-preview
   last_modified: Fri, 29 May 2026 09:10:00 GMT
 ---
 # Compiling C Code into Code Assets with Native Assets Hooks
@@ -281,19 +280,19 @@ Future<File> downloadAsset(
 ) async {
   final fileName = targetOS.dylibFileName('native_add_${targetOS.name}_${targetArchitecture.name}');
   final uri = downloadUri(fileName);
-  
+
   final client = HttpClient()..findProxy = HttpClient.findProxyFromEnvironment;
   final request = await client.getUrl(uri);
   final response = await request.close();
-  
+
   if (response.statusCode != 200) {
     throw ArgumentError('Download target $uri failed: Code ${response.statusCode}');
   }
-  
+
   final targetFile = File.fromUri(outputDir.uri.resolve(fileName));
   await targetFile.create(recursive: true);
   await response.pipe(targetFile.openWrite());
-  
+
   return targetFile;
 }
 

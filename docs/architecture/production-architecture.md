@@ -1,10 +1,10 @@
 # Production Architecture: WhatsApp Status Saver
 
-**Document Status:** Approved Architecture Specification  
-**Target Platform:** Android (API 29 – 36 / Android 10 – 16), iOS (secondary)  
-**Primary Test Target:** Xiaomi 2311DRK48I (`duchamp_in`) | Android 16 (API 36) | HyperOS 3.0  
-**Authors:** Senior Mobile & Platform Architecture Team  
-**Date:** September 2026  
+**Document Status:** Approved Architecture Specification
+**Target Platform:** Android (API 29 – 36 / Android 10 – 16), iOS (secondary)
+**Primary Test Target:** Xiaomi 2311DRK48I (`duchamp_in`) | Android 16 (API 36) | HyperOS 3.0
+**Authors:** Senior Mobile & Platform Architecture Team
+**Date:** September 2026
 
 ---
 
@@ -407,10 +407,10 @@ We evaluated all 9 candidate channel operations from the design brief:
 ## 8. Android Native Architecture
 
 ### 8.1 Modular Kotlin Architecture
-In the POC, all native code lived inside `MainActivity.kt` (440 lines). Production separates these concerns into dedicated classes in `com.example.whatsapp_status_saver.status`:
+In the POC, all native code lived inside `MainActivity.kt` (440 lines). Production separates these concerns into dedicated classes in `io.nishvanta.keeva.status`:
 
 ```
-android/app/src/main/kotlin/com/example/whatsapp_status_saver/
+android/app/src/main/kotlin/io/nishvanta/keeva/
 ├── MainActivity.kt                      (Slim launcher & engine hook)
 └── status/
     ├── AndroidStatusScanner.kt          (MethodCallHandler & Coroutine orchestrator)
@@ -813,17 +813,15 @@ Users may run:
 
 Detailed ADR documents are recorded under `docs/decisions/`:
 
-1. [ADR 001: Storage Access Framework (SAF) for Status Discovery](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/001-saf-media-discovery.md)
+1. [ADR 001: Storage Access Framework (SAF) for Status Discovery](../decisions/001-saf-media-discovery.md)
    - *Decision:* Use SAF `ACTION_OPEN_DOCUMENT_TREE` with advisory `EXTRA_INITIAL_URI` (dynamically derived) and persisted URI permissions. Direct file access is blocked on Android 11–16, and MediaStore ignores hidden `.Statuses`. Validate returned tree and handle selection variants dynamically.
-2. [ADR 002: Zero-Permission MediaStore Saving with Atomic Rollback](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/002-mediastore-zero-permission-export.md)
+2. [ADR 002: Zero-Permission MediaStore Saving with Atomic Rollback](../decisions/002-mediastore-zero-permission-export.md)
    - *Decision:* Native Kotlin `MediaStoreSaver` inserts directly into `MediaStore.Images` and `MediaStore.Video` using `IS_PENDING = 1` and cleans up via `contentResolver.delete()` on error.
-3. [ADR 003: Deferral of Drift / SQLite Database for Phase 2](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/003-defer-drift-database.md)
+3. [ADR 003: Deferral of Drift / SQLite Database for Phase 2](../decisions/003-defer-drift-database.md)
    - *Decision:* Avoid heavy database dependencies and code generation for Phase 2. Use `shared_preferences` and lightweight JSON files behind an abstract `SavedMediaRepository`.
-4. [ADR 004: Native Background Thumbnail Downsampling via BitmapFactory](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/004-bitmap-factory-thumbnail-pipeline.md)
+4. [ADR 004: Native Background Thumbnail Downsampling via BitmapFactory](../decisions/004-bitmap-factory-thumbnail-pipeline.md)
    - *Decision:* Target 256x256 WebP thumbnails on background threads using `BitmapFactory` `inSampleSize` to prevent Out-Of-Memory errors during grid scrolling (100 MB disk limit, 35 MB RAM limit).
-5. [ADR 005: On-Demand Video Cache Streaming for Playback](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/005-video-cache-streaming.md)
+5. [ADR 005: On-Demand Video Cache Streaming for Playback](../decisions/005-video-cache-streaming.md)
    - *Decision:* Stream status videos to an app cache file (`cacheDir/videos/`) before opening with `video_player`, ensuring seamless seek bar responsiveness and zero SAF pipe drops (bounded 100 MB LRU disk cache).
-6. [ADR 006: Opaque String Identifiers across the Platform Boundary](file:///Users/nishanth/development/whatsapp_status_saver/docs/decisions/006-opaque-id-platform-boundary.md)
+6. [ADR 006: Opaque String Identifiers across the Platform Boundary](../decisions/006-opaque-id-platform-boundary.md)
    - *Decision:* The domain model uses an opaque `String id` so the UI never touches Android `content://` URIs or document IDs.
-
-

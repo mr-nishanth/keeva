@@ -213,6 +213,39 @@ class SettingsScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
+                      'Developer',
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.darkTextPrimary,
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Built by Nishvanta Labs',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.darkTextSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.space2),
+                        Text(
+                          'Technology You Can Trust.',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.darkTextTertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const Divider(
+                  color: AppColors.darkBorderSubtle,
+                  height: AppSpacing.space24,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
                       'Target Platform',
                       style: AppTypography.bodyMedium.copyWith(
                         color: AppColors.darkTextPrimary,

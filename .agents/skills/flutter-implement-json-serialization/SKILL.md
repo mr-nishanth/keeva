@@ -2,7 +2,6 @@
 name: flutter-implement-json-serialization
 description: Create model classes with `fromJson` and `toJson` methods using `dart:convert`. Use when manually mapping JSON keys to class properties for simple data structures.
 metadata:
-  model: models/gemini-3.1-pro-preview
   last_modified: Tue, 21 Apr 2026 21:44:50 GMT
 ---
 # Serializing JSON Manually in Flutter
@@ -48,7 +47,7 @@ Use this conditional workflow when retrieving and parsing JSON from a network re
 - [ ] Decode and map the JSON to the model.
 
 1. **Execute Request**: Use the `http` package to perform the network call.
-2. **Validate Response**: 
+2. **Validate Response**:
    - If `response.statusCode == 200` (or 201 for POST), proceed to parsing.
    - If the status code indicates failure, throw an `Exception`.
 3. **Determine Parsing Strategy**:
@@ -81,7 +80,7 @@ class User {
         'id': int id,
         'name': String name,
         'email': String email,
-      } => 
+      } =>
         User(
           id: id,
           name: name,

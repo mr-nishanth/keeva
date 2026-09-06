@@ -2,7 +2,6 @@
 name: flutter-add-widget-test
 description: Implement a component-level test using `WidgetTester` to verify UI rendering and user interactions (tapping, scrolling, entering text). Use when validating that a specific widget displays correct data and responds to events as expected.
 metadata:
-  model: models/gemini-3.1-pro-preview
   last_modified: Tue, 21 Apr 2026 21:15:41 GMT
 ---
 # Writing Flutter Widget Tests
@@ -50,10 +49,10 @@ Copy the following checklist to track progress when implementing a new widget te
 Apply the following conditional logic based on the type of interaction or state change being tested:
 
 *   **If testing static rendering:** Call `await tester.pumpWidget()` once, then immediately run `expect()` assertions.
-*   **If testing standard state changes (e.g., button taps):** 
+*   **If testing standard state changes (e.g., button taps):**
     1. Call `await tester.tap(finder)`.
     2. Call `await tester.pump()` to trigger a single frame rebuild.
-*   **If testing animations, transitions, or asynchronous UI updates:** 
+*   **If testing animations, transitions, or asynchronous UI updates:**
     1. Trigger the action (e.g., `await tester.drag(finder, Offset(500, 0))`).
     2. Call `await tester.pumpAndSettle()` to repeatedly pump frames until no more frames are scheduled (animation completes).
 *   **If testing text input:** Call `await tester.enterText(textFieldFinder, 'Input string')`.

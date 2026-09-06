@@ -2,7 +2,6 @@
 name: dart-collect-coverage
 description: Collect coverage using the coverage packge and create an LCOV report
 metadata:
-  model: models/gemini-3.1-pro-preview
   last_modified: Fri, 24 Apr 2026 15:14:32 GMT
 ---
 # Implementing Dart and Flutter Test Coverage

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 180" width="600" height="180">
+  <defs>
+    <linearGradient id="keevaTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#F3F4F6"/>
+      <stop offset="100%" stop-color="#E5E7EB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Brand Wordmark -->
+  <text x="32" y="112"
+        font-family="-apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, sans-serif"
+        font-size="96"
+        font-weight="700"
+        letter-spacing="-1.5"
+        fill="url(#keevaTextGrad)">Keeva</text>
+
+  <!-- Tagline / Descriptor -->
+  <text x="36" y="152"
+        font-family="-apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, sans-serif"
+        font-size="15"
+        font-weight="600"
+        letter-spacing="5"
+        fill="#10B981">PRIVATE MOMENTS KEEPER</text>
+
+  <!-- Decorative Accent Dot -->
+  <circle cx="344" cy="56" r="8" fill="#10B981"/>
+</svg>

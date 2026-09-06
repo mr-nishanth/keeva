@@ -2,7 +2,6 @@
 name: dart-use-pattern-matching
 description: Use switch expressions and pattern matching where appropriate
 metadata:
-  model: models/gemini-3.1-pro-preview
   last_modified: Fri, 24 Apr 2026 15:08:55 GMT
 ---
 # Implementing Dart Patterns

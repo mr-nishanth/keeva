@@ -43,6 +43,22 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+.gradle/
+android/.gradle/
+local.properties
+android/local.properties
 
 # Widget Preview related
 .widget_preview/
+
+# Agent / Local execution state
+.claude-flow/
+.antigravity/
+
+# Android keystore & signing secrets
+*.keystore
+*.jks
+*.p12
+*.pem
+key.properties
+android/key.properties

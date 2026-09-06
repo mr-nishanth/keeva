@@ -2,7 +2,6 @@
 name: flutter-apply-architecture-best-practices
 description: Architects a Flutter application using the recommended layered approach (UI, Logic, Data). Use when structuring a new project or refactoring for scalability.
 metadata:
-  model: models/gemini-3.1-pro-preview
   last_modified: Tue, 21 Apr 2026 20:11:20 GMT
 ---
 # Architecting Flutter Applications
@@ -83,13 +82,13 @@ class ApiClient {
 // 2. Repository (Single source of truth, returns Domain Model)
 class UserRepository {
   UserRepository({required ApiClient apiClient}) : _apiClient = apiClient;
-  
+
   final ApiClient _apiClient;
   User? _cachedUser;
 
   Future<User> getUser(String id) async {
     if (_cachedUser != null) return _cachedUser!;
-    
+
     final apiModel = await _apiClient.fetchUser(id);
     _cachedUser = User(id: apiModel.id, name: apiModel.fullName); // Transform to Domain Model
     return _cachedUser!;
@@ -102,7 +101,7 @@ class UserRepository {
 ```dart
 // 3. ViewModel (State management and presentation logic)
 class ProfileViewModel extends ChangeNotifier {
-  ProfileViewModel({required UserRepository userRepository}) 
+  ProfileViewModel({required UserRepository userRepository})
       : _userRepository = userRepository;
 
   final UserRepository _userRepository;
@@ -140,7 +139,7 @@ class ProfileView extends StatelessWidget {
         if (viewModel.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         final user = viewModel.user;
         if (user == null) {
           return const Center(child: Text('User not found'));

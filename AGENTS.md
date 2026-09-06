@@ -4,7 +4,7 @@
 
 This file defines the project-wide engineering rules, architecture, workflow, and quality standards for AI coding agents working on this repository.
 
-These instructions apply to all AI coding agents, including Claude Code, Cursor, Antigravity, Codex, and any other agent operating inside this repository.
+These instructions apply to all AI coding agents operating inside this repository.
 
 ---
 
@@ -31,7 +31,7 @@ These instructions apply to all AI coding agents, including Claude Code, Cursor,
 **Current repository root:**
 
 ```text
-/Users/nishanth/development/whatsapp_status_saver
+<project-root>
 ```
 
 The application is a native-feeling Flutter app for discovering, previewing, saving, organizing, and managing WhatsApp Status media.
