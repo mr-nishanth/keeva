@@ -491,12 +491,21 @@ class _MediaViewerScreenState extends ConsumerState<MediaViewerScreen>
                           widget.onShare!(widget.item);
                         } else {
                           final useCase = ref.read(shareStatusUseCaseProvider);
-                          await useCase(
+                          final result = await useCase(
                             id: widget.item.id,
                             displayName: widget.item.displayName,
                             mimeType: widget.item.mimeType,
                             isVideo: widget.item.isVideo,
                           );
+                          if (context.mounted && result.isFailure) {
+                            KeevaToast.show(
+                              context,
+                              message:
+                                  result.failureOrNull?.message ??
+                                  'Failed to share media',
+                              icon: AppIcons.errorWarning,
+                            );
+                          }
                         }
                       },
                       icon: const Icon(

@@ -216,11 +216,11 @@ jobs:
           fi
           echo "✓ Version format is syntactically valid: $APP_VERSION"
 
-      - name: Verify Code Formatting
-        run: dart format --output=none --set-exit-if-changed lib test integration_test tool
-
       - name: Install Dependencies
         run: flutter pub get
+
+      - name: Verify Code Formatting
+        run: dart format --output=none --set-exit-if-changed lib test integration_test tool
 
       - name: Run Static Analysis
         run: flutter analyze

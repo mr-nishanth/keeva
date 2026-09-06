@@ -304,8 +304,9 @@ class _KeevaVideoPlayerState extends State<KeevaVideoPlayer>
                         value: currentMs,
                         min: 0.0,
                         max: durationMs > 0 ? durationMs : 1.0,
-                        onChangeStart: (_) {
+                        onChangeStart: (pos) {
                           _isDragging = true;
+                          _dragPositionMs = pos;
                         },
                         onChanged: (pos) {
                           setState(() {

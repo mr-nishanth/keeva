@@ -13,6 +13,23 @@ import 'package:whatsapp_status_saver/domain/entities/status_item.dart';
 import 'package:whatsapp_status_saver/presentation/common/buttons/keep_button.dart';
 import 'package:whatsapp_status_saver/presentation/common/feedback/error_state.dart';
 import 'package:whatsapp_status_saver/presentation/viewer/media_viewer_screen.dart';
+import 'package:whatsapp_status_saver/core/result/result.dart';
+import 'package:whatsapp_status_saver/domain/repositories/status_repository.dart';
+
+class FakeStatusRepository extends Fake implements StatusRepository {
+  final Result<bool> shareResult;
+  FakeStatusRepository({this.shareResult = const Success(true)});
+
+  @override
+  Future<Result<bool>> shareStatus({
+    required String id,
+    String? displayName,
+    String? mimeType,
+    bool isVideo = false,
+  }) async {
+    return shareResult;
+  }
+}
 
 class MockViewerNotifier extends ViewerNotifier {
   final ViewerState initialState;
@@ -65,6 +82,7 @@ void main() {
     ValueChanged<StatusItem>? onShare,
     MockViewerNotifier? mockViewerNotifier,
     MockSaveNotifier? mockSaveNotifier,
+    StatusRepository? mockStatusRepository,
   }) {
     return ProviderScope(
       overrides: [
@@ -72,6 +90,8 @@ void main() {
           viewerNotifierProvider.overrideWith(() => mockViewerNotifier),
         if (mockSaveNotifier != null)
           saveNotifierProvider.overrideWith(() => mockSaveNotifier),
+        if (mockStatusRepository != null)
+          statusRepositoryProvider.overrideWithValue(mockStatusRepository),
       ],
       child: MaterialApp(
         theme: KeevaTheme.darkTheme,
@@ -257,6 +277,38 @@ void main() {
 
       expect(find.byType(ErrorState), findsOneWidget);
       expect(find.text('Video stream corrupted'), findsOneWidget);
+    });
+
+    testWidgets('tapping Share displays error toast if shareStatus fails', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 1000);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final fakeRepo = FakeStatusRepository(
+        shareResult: const Failure(
+          UnknownFailure('Failed to open system share sheet'),
+        ),
+      );
+
+      await tester.pumpWidget(
+        buildTestable(
+          item: testItem,
+          mockViewerNotifier: MockViewerNotifier(),
+          mockSaveNotifier: MockSaveNotifier(),
+          mockStatusRepository: fakeRepo,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(AppIcons.actionShare).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Failed to open system share sheet'), findsOneWidget);
     });
   });
 }
