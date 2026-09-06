@@ -64,7 +64,23 @@ android {
             } else {
                 // Graceful fallback to debug signing when key.properties is not provisioned.
                 // Ensures local release engineering, testing, and open-source builds succeed.
-                initWith(signingConfigs.getByName("debug"))
+                val debugConfig = signingConfigs.getByName("debug")
+                initWith(debugConfig)
+                val debugFile = debugConfig.storeFile
+                if (debugFile != null && !debugFile.exists()) {
+                    debugFile.parentFile?.mkdirs()
+                    ProcessBuilder(
+                        "keytool", "-genkeypair",
+                        "-keystore", debugFile.absolutePath,
+                        "-storepass", "android",
+                        "-alias", "androiddebugkey",
+                        "-keypass", "android",
+                        "-keyalg", "RSA",
+                        "-keysize", "2048",
+                        "-validity", "10000",
+                        "-dname", "CN=Android Debug,O=Android,C=US"
+                    ).redirectErrorStream(true).start().waitFor()
+                }
             }
         }
     }

@@ -222,6 +222,14 @@ jobs:
       - name: Make Gradle Wrapper Executable
         run: chmod +x android/gradlew
 
+      - name: Ensure Fallback Signing Keystore
+        run: |
+          mkdir -p "$HOME/.android" "$HOME/.config/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkeypair -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          cp -f "$HOME/.android/debug.keystore" "$HOME/.config/.android/debug.keystore" 2>/dev/null || true
+
       - name: Build Release APK
         run: flutter build apk --release
 
