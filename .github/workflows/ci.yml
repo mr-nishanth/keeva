@@ -1,4 +1,4 @@
-name: Keeva CI
+name: Keeva CI & Release
 
 on:
   push:
@@ -8,17 +8,136 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release calculation mode (auto, patch, minor, major)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+      dry_run:
+        description: 'Dry-run release calculation without tagging or publishing'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  compliance:
-    name: Repository Compliance & Safety
+  evaluate-and-tag:
+    name: Evaluate Release & Tag
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.release-eval.outputs.should_release }}
+      tag_name: ${{ steps.release-eval.outputs.tag_name }}
+      version: ${{ steps.release-eval.outputs.next_version }}
+      build_number: ${{ steps.release-eval.outputs.next_build }}
+      release_type: ${{ steps.release-eval.outputs.release_type }}
+      dry_run: ${{ steps.release-eval.outputs.dry_run }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: '3.47.2'
+          channel: 'stable'
+          cache: true
+
+      - name: Evaluate Release Decision & Create Tag
+        id: release-eval
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OVERRIDE_TYPE="${{ inputs.release_type || 'auto' }}"
+          DRY_RUN_FLAG=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            DRY_RUN_FLAG="--dry-run"
+          fi
+
+          echo "Running release calculation (override: $OVERRIDE_TYPE, dry_run: ${{ inputs.dry_run }})..."
+          dart run tool/release.dart calculate \
+            --override "$OVERRIDE_TYPE" \
+            $DRY_RUN_FLAG \
+            --github-output "$GITHUB_OUTPUT"
+
+          SHOULD_REL=$(grep -E '^should_release=' "$GITHUB_OUTPUT" | cut -d'=' -f2)
+          TAG_NAME=$(grep -E '^tag_name=' "$GITHUB_OUTPUT" | cut -d'=' -f2)
+          NEXT_VER=$(grep -E '^next_version=' "$GITHUB_OUTPUT" | cut -d'=' -f2)
+          NEXT_BLD=$(grep -E '^next_build=' "$GITHUB_OUTPUT" | cut -d'=' -f2)
+          CURRENT_VER=$(grep -E '^current_version=' "$GITHUB_OUTPUT" | cut -d'=' -f2)
+          CURRENT_BLD=$(grep -E '^current_build=' "$GITHUB_OUTPUT" | cut -d'=' -f2)
+          IS_DRY=$(grep -E '^dry_run=' "$GITHUB_OUTPUT" | cut -d'=' -f2)
+
+          if [ "$SHOULD_REL" = "true" ] && [ "$IS_DRY" != "true" ]; then
+            echo "Verifying tag $TAG_NAME does not already exist on remote..."
+            if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+              echo "::error::Tag $TAG_NAME already exists! Refusing to overwrite existing release."
+              exit 1
+            fi
+
+            # Check if pubspec update is needed
+            if [ "$NEXT_VER+$NEXT_BLD" != "$CURRENT_VER+$CURRENT_BLD" ]; then
+              echo "Updating pubspec.yaml to $NEXT_VER+$NEXT_BLD..."
+              dart run tool/release.dart update-pubspec --version "$NEXT_VER" --build "$NEXT_BLD"
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git add pubspec.yaml
+              git commit -m "chore(release): $TAG_NAME [skip ci]"
+              git push origin main
+            fi
+
+            echo "Creating and pushing annotated git tag $TAG_NAME..."
+            git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+            git push origin "$TAG_NAME"
+            echo "Successfully tagged $TAG_NAME on origin."
+          else
+            echo "No release actions needed (should_release=$SHOULD_REL, is_dry=$IS_DRY)."
+          fi
+
+  validate-and-build-android:
+    name: Validation & Android Release Build
+    needs: [evaluate-and-tag]
+    if: always() && !cancelled() && (needs.evaluate-and-tag.result == 'success' || needs.evaluate-and-tag.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ (needs.evaluate-and-tag.outputs.should_release == 'true' && needs.evaluate-and-tag.outputs.dry_run != 'true') && needs.evaluate-and-tag.outputs.tag_name || '' }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Java 21
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: '3.47.2'
+          channel: 'stable'
+          cache: true
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          cache-read-only: false
 
       - name: Secret Leak Check (Tracked Files)
         run: |
@@ -95,88 +214,17 @@ jobs:
           fi
           echo "✓ Version format is syntactically valid: $APP_VERSION"
 
-  formatting:
-    name: Code Formatting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          flutter-version: '3.47.2'
-          channel: 'stable'
-          cache: true
-
       - name: Verify Code Formatting
-        run: dart format --output=none --set-exit-if-changed lib test integration_test
-
-  analyze:
-    name: Static Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          flutter-version: '3.47.2'
-          channel: 'stable'
-          cache: true
+        run: dart format --output=none --set-exit-if-changed lib test integration_test tool
 
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Run Flutter Analyze
+      - name: Run Static Analysis
         run: flutter analyze
-
-  flutter-tests:
-    name: Flutter Unit & Widget Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          flutter-version: '3.47.2'
-          channel: 'stable'
-          cache: true
-
-      - name: Install Dependencies
-        run: flutter pub get
 
       - name: Run Flutter Tests
         run: flutter test
-
-  android-tests:
-    name: Android JVM Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Java 21
-        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          flutter-version: '3.47.2'
-          channel: 'stable'
-          cache: true
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
-
-      - name: Install Dependencies
-        run: flutter pub get
 
       - name: Configure Android Project
         run: flutter build apk --config-only
@@ -189,41 +237,6 @@ jobs:
           cd android
           ./gradlew test
 
-  release-build:
-    name: Release Build & Artifact Validation
-    needs: [compliance, formatting, analyze, flutter-tests, android-tests]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Java 21
-        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          flutter-version: '3.47.2'
-          channel: 'stable'
-          cache: true
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
-        with:
-          cache-read-only: true
-
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Configure Android Project
-        run: flutter build apk --config-only
-
-      - name: Make Gradle Wrapper Executable
-        run: chmod +x android/gradlew
-
       - name: Ensure Fallback Signing Keystore
         run: |
           mkdir -p "$HOME/.android" "$HOME/.config/.android"
@@ -235,7 +248,7 @@ jobs:
       - name: Build Release APK
         run: flutter build apk --release
 
-      - name: Validate Release APK Identity & Privacy
+      - name: Validate Release APK Identity, Versioning & Privacy
         run: |
           AAPT=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -name aapt -type f | sort -V | tail -n 1)
           if [ -z "$AAPT" ] || [ ! -x "$AAPT" ]; then
@@ -247,10 +260,28 @@ jobs:
           fi
           echo "Using aapt binary: $AAPT"
           BADGING=$("$AAPT" dump badging build/app/outputs/flutter-apk/app-release.apk)
+
           echo "Verifying package name..."
           echo "$BADGING" | grep -E "package: name='io\.nishvanta\.keeva'"
+
           echo "Verifying application label..."
           echo "$BADGING" | grep -E "application-label:'Keeva'"
+
+          EXPECTED_VERSION="${{ needs.evaluate-and-tag.outputs.version }}"
+          EXPECTED_BUILD="${{ needs.evaluate-and-tag.outputs.build_number }}"
+          if [ -z "$EXPECTED_VERSION" ]; then
+            EXPECTED_VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          fi
+          if [ -z "$EXPECTED_BUILD" ]; then
+            EXPECTED_BUILD=$(grep -E '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f2)
+          fi
+
+          echo "Verifying version name: $EXPECTED_VERSION..."
+          echo "$BADGING" | grep -E "versionName='$EXPECTED_VERSION'"
+
+          echo "Verifying version code: $EXPECTED_BUILD..."
+          echo "$BADGING" | grep -E "versionCode='$EXPECTED_BUILD'"
+
           echo "Verifying absence of sensitive permissions..."
           if echo "$BADGING" | grep -q "android.permission.INTERNET"; then
             echo "::error::Release APK contains android.permission.INTERNET!"
@@ -260,7 +291,7 @@ jobs:
             echo "::error::Release APK contains android.permission.MANAGE_EXTERNAL_STORAGE!"
             exit 1
           fi
-          echo "✓ Release APK identity and privacy safeguards verified successfully."
+          echo "✓ Release APK identity, versioning ($EXPECTED_VERSION+$EXPECTED_BUILD), and privacy safeguards verified successfully."
 
       - name: Build Release AAB
         run: flutter build appbundle --release
@@ -276,18 +307,137 @@ jobs:
           echo "AAB Checksum (SHA-256):"
           sha256sum "$AAB_FILE"
 
-      - name: Upload Release APK Artifact
+      - name: Stage Release Artifacts
+        if: needs.evaluate-and-tag.outputs.should_release == 'true' && needs.evaluate-and-tag.outputs.dry_run != 'true'
+        run: |
+          TAG_NAME="${{ needs.evaluate-and-tag.outputs.tag_name }}"
+          mkdir -p staged-release-assets
+          cp build/app/outputs/flutter-apk/app-release.apk "staged-release-assets/Keeva-${TAG_NAME}-Android.apk"
+          cp build/app/outputs/bundle/release/app-release.aab "staged-release-assets/Keeva-${TAG_NAME}-Android.aab"
+          echo "Staged release assets:"
+          ls -la staged-release-assets/
+
+      - name: Upload Staged Android Release Assets
+        if: needs.evaluate-and-tag.outputs.should_release == 'true' && needs.evaluate-and-tag.outputs.dry_run != 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: app-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: android-release-assets
+          path: staged-release-assets/*
           retention-days: 3
           if-no-files-found: error
 
-      - name: Upload Release AAB Artifact
+  build-ios:
+    name: iOS Release Packaging (macOS)
+    needs: [evaluate-and-tag]
+    if: github.event_name != 'pull_request' && needs.evaluate-and-tag.outputs.should_release == 'true' && needs.evaluate-and-tag.outputs.dry_run != 'true'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout exact release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.evaluate-and-tag.outputs.tag_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: '3.47.2'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Evaluate Apple Distribution Signing
+        id: signing-check
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          if [ -z "$APPLE_CERTIFICATE" ] || [ -z "$APPLE_PROVISIONING_PROFILE" ]; then
+            echo "::notice::IOS_RELEASE_BLOCKED_SIGNING_NOT_CONFIGURED: Apple distribution signing credentials are not configured in repository secrets."
+            echo "configured=false" >> $GITHUB_OUTPUT
+          else
+            echo "configured=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Signed iOS IPA
+        if: steps.signing-check.outputs.configured == 'true'
+        run: |
+          flutter build ipa --release
+          mkdir -p staged-ios-assets
+          cp build/ios/ipa/*.ipa "staged-ios-assets/Keeva-${{ needs.evaluate-and-tag.outputs.tag_name }}-iOS.ipa"
+
+      - name: Upload iOS Release Asset
+        if: steps.signing-check.outputs.configured == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: app-release-aab
-          path: build/app/outputs/bundle/release/app-release.aab
+          name: ios-release-assets
+          path: staged-ios-assets/*
           retention-days: 3
-          if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [evaluate-and-tag, validate-and-build-android, build-ios]
+    if: always() && !cancelled() && needs.evaluate-and-tag.outputs.should_release == 'true' && needs.evaluate-and-tag.outputs.dry_run != 'true' && needs.validate-and-build-android.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.evaluate-and-tag.outputs.tag_name }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: '3.47.2'
+          channel: 'stable'
+          cache: true
+
+      - name: Download Android Release Assets
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: android-release-assets
+          path: release-assets
+
+      - name: Download iOS Release Assets (if available)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        continue-on-error: true
+        with:
+          name: ios-release-assets
+          path: release-assets
+
+      - name: Generate Cryptographic SHA-256 Checksums
+        run: |
+          cd release-assets
+          sha256sum Keeva-* > SHA256SUMS.txt
+          echo "=== SHA256SUMS.txt ==="
+          cat SHA256SUMS.txt
+          cd ..
+
+      - name: Generate Canonical Release Notes
+        run: |
+          TAG="${{ needs.evaluate-and-tag.outputs.tag_name }}"
+          TYPE="${{ needs.evaluate-and-tag.outputs.release_type }}"
+          dart run tool/release.dart notes \
+            --tag "$TAG" \
+            --type "$TYPE" \
+            --checksums "release-assets/SHA256SUMS.txt" \
+            --output "release-notes.md"
+          echo "=== RELEASE NOTES ==="
+          cat release-notes.md
+
+      - name: Publish GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ needs.evaluate-and-tag.outputs.tag_name }}"
+          echo "Publishing GitHub Release for $TAG..."
+          gh release create "$TAG" \
+            --title "Keeva $TAG" \
+            --notes-file release-notes.md \
+            release-assets/*
+          echo "GitHub Release successfully published!"
+          gh release view "$TAG" --json url -q .url

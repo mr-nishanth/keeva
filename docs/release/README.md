@@ -20,6 +20,8 @@ Keeva is engineered as an Android-first, local-first Flutter application designe
 
 | Document | Description |
 | :--- | :--- |
+| [versioning.md](versioning.md) | Automated Semantic Versioning (SemVer), Conventional Commits, and monotonic build rules. |
+| [github-releases.md](github-releases.md) | Automated GitHub Releases pipeline, release assets, dry-run, and loop safety. |
 | [versioning-policy.md](versioning-policy.md) | Canonical rules governing `versionName` (SemVer) and `versionCode` (monotonic sequence). |
 | [signing.md](signing.md) | Secure signing architecture, Google Play App Signing, and zero-secret repository security. |
 | [release-checklist.md](release-checklist.md) | Comprehensive step-by-step checklist required before cutting any production distribution. |

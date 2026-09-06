@@ -117,7 +117,7 @@ flutter test
 flutter analyze
 
 # Verify code formatting
-dart format --output=none --set-exit-if-changed lib test integration_test
+dart format --output=none --set-exit-if-changed lib test integration_test tool
 ```
 
 ---
@@ -132,7 +132,28 @@ flutter build apk --debug
 
 # Build profile APK
 flutter build apk --profile
+
+# Build release APK
+flutter build apk --release
+
+# Build release App Bundle (AAB)
+flutter build appbundle --release
 ```
+
+---
+
+## Releases & Versioning
+
+Versioning and GitHub Releases are automated through GitHub Actions using semantic versioning.
+
+Releases are generated automatically when qualifying changes land on the `main` branch:
+- `fix:` $\rightarrow$ **PATCH** release (e.g., `1.0.0` $\rightarrow$ `1.0.1`)
+- `feat:` $\rightarrow$ **MINOR** release (e.g., `1.0.1` $\rightarrow$ `1.1.0`)
+- `feat!:` or `BREAKING CHANGE:` $\rightarrow$ **MAJOR** release (e.g., `1.1.0` $\rightarrow$ `2.0.0`)
+
+Contributors and maintainers do not manually edit version numbers or create Git release tags for standard releases. Each release strictly increments the platform build number and publishes verified release artifacts (APK, AAB, SHA-256 checksums, and iOS IPA when signing is provisioned).
+
+For complete technical specifications, see [Versioning Documentation](docs/release/versioning.md) and [GitHub Releases Documentation](docs/release/github-releases.md).
 
 ---
 

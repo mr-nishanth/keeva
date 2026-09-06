@@ -44,7 +44,7 @@ Before submitting a pull request, verify that all validation steps pass locally:
 
 ```bash
 # 1. Code Formatting
-dart format --output=none --set-exit-if-changed lib test integration_test
+dart format --output=none --set-exit-if-changed lib test integration_test tool
 
 # 2. Static Analysis
 flutter analyze
@@ -85,13 +85,25 @@ lib/
 
 ## 5. Commit & Pull Request Conventions
 
-We follow Conventional Commits:
-- `feat:` A new user-facing feature or enhancement
-- `fix:` A bug fix
-- `docs:` Documentation updates
-- `test:` Adding or updating tests
-- `refactor:` Code changes that neither fix a bug nor add a feature
-- `chore:` Build scripts, dependencies, or toolchain updates
+Release versions are maintained by the automated release workflow. Contributors should not manually create release tags or GitHub Releases.
+
+We follow Conventional Commits to automatically calculate semantic versions:
+- `feat:` A new user-facing feature or enhancement (triggers MINOR release)
+- `fix:` A bug fix (triggers PATCH release)
+- `feat!:` or `BREAKING CHANGE:` Incompatible changes (triggers MAJOR release)
+- `docs:` Documentation updates (no release)
+- `test:` Adding or updating tests (no release)
+- `refactor:` Code changes that neither fix a bug nor add a feature (no release)
+- `chore:` Build scripts, dependencies, or toolchain updates (no release)
+
+### Commit Message Examples:
+```text
+feat: add media sorting
+fix: resolve video cache issue
+docs: improve README
+chore: update CI
+feat!: redesign storage API
+```
 
 Please keep PRs focused, include descriptions of changes, and verify all automated checks pass before requesting review.
 
