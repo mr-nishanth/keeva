@@ -165,3 +165,39 @@ Phase 3C.2 replaces the manual-tag release trigger design with an autonomous, en
   - `SHA256SUMS.txt`
 - **iOS Status:** State B logged (`IOS_RELEASE_BLOCKED_SIGNING_NOT_CONFIGURED`), zero fake IPAs attached, Android release completed without disruption.
 
+---
+
+## 6. Second Release End-to-End Verification (Phase 3C.3)
+
+### Executive Summary
+The automated release pipeline was tested and proven end-to-end with a genuine qualifying fix commit (`61b556a`), publishing the second official GitHub release: **v1.0.1**.
+
+### Second Release Metric Matrix
+- **First release:** `v1.0.0`
+- **Second release:** `v1.0.1`
+- **Release type:** `PATCH`
+- **Version bump:** **PASS** (`1.0.0+1` $\rightarrow$ `1.0.1+2` in `pubspec.yaml`)
+- **Build number increment:** **PASS** (`1` $\rightarrow$ `2`)
+- **Automatic tag:** **PASS** (`v1.0.1` created by `github-actions[bot]`)
+- **Android APK:** **PASS** (`Keeva-v1.0.1-Android.apk`, `io.nishvanta.keeva`, version `1.0.1`, build `2`, zero sensitive permissions)
+- **Android AAB:** **PASS** (`Keeva-v1.0.1-Android.aab`, 51.2 MB)
+- **SHA-256:** **PASS** (Cryptographically matched `SHA256SUMS.txt`)
+- **GitHub Release:** **PASS** (Published: `https://github.com/mr-nishanth/keeva/releases/tag/v1.0.1`)
+- **Non-release docs commit:** **PASS** (CI executes, zero releases/tags triggered)
+- **Release-loop protection:** **PASS** (`chore(release): v1.0.1 [skip ci]` prevented cascading workflow trigger)
+- **Node 24 compatibility:** **PASS** (All third-party GitHub Actions run cleanly on Node 24 runners)
+- **iOS:** **BLOCKED** (`IOS_RELEASE_BLOCKED_SIGNING_NOT_CONFIGURED`, honestly documented, non-blocking for Android release)
+
+### Cryptographic Checksums (v1.0.1)
+```
+34edbf6ec839ead252507db1f0b131c8131667cd5bda18d11c8ceae3dc454d8d  Keeva-v1.0.1-Android.aab
+c430223cbf0c1e9d64ecd3726269b90206f39bf812053f46fab64853d4ca390d  Keeva-v1.0.1-Android.apk
+```
+Verified independently using `shasum -a 256 -c SHA256SUMS.txt` $\rightarrow$ `OK`.
+
+### Live Workflow Reference
+- **GitHub Actions Run ID:** `34027018635`
+- **Trigger Commit:** `61b556a fix(viewer): initialize video scrubber drag position and handle share failure`
+- **Release Commit:** `0cc9ea7 chore(release): v1.0.1 [skip ci]`
+- **Official Release URL:** `https://github.com/mr-nishanth/keeva/releases/tag/v1.0.1`
+
