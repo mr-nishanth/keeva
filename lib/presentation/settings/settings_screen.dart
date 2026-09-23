@@ -12,6 +12,7 @@ import '../common/buttons/secondary_button.dart';
 import '../common/controls/section_header.dart';
 import '../common/sheets/bottom_sheet.dart';
 import '../shell/top_bar.dart';
+import 'biometric_settings_section.dart';
 
 /// Settings & System Integration Screen.
 ///
@@ -283,6 +284,10 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
+
+          const SizedBox(height: AppSpacing.space32),
+
+          const BiometricSettingsSection(),
         ],
       ),
     );

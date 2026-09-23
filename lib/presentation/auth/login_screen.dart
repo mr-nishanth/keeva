@@ -9,6 +9,7 @@ import '../../app/theme/app_typography.dart';
 import '../../application/providers.dart';
 import '../common/brand/keeva_logo.dart';
 import '../common/buttons/primary_button.dart';
+import '../common/buttons/secondary_button.dart';
 
 /// Shown while the saved on-device session is being read.
 class AuthRestoringView extends StatelessWidget {
@@ -81,6 +82,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authNotifierProvider);
     final isSubmitting = authState.isSubmitting;
     final errorMessage = authState.errorMessage;
+    final canRetryBiometric = authState.canRetryBiometric;
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
@@ -180,6 +182,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   if (errorMessage != null) ...[
                     const SizedBox(height: AppSpacing.space16),
                     _LoginErrorBanner(message: errorMessage),
+                  ],
+                  if (canRetryBiometric) ...[
+                    const SizedBox(height: AppSpacing.space24),
+                    SecondaryButton(
+                      key: const Key('login_biometric_retry'),
+                      label: 'Unlock with biometrics',
+                      isFullWidth: true,
+                      leadingIcon: AppIcons.fingerprint,
+                      onPressed: isSubmitting
+                          ? null
+                          : () {
+                              ref
+                                  .read(authNotifierProvider.notifier)
+                                  .unlockWithBiometrics();
+                            },
+                    ),
                   ],
                   const SizedBox(height: AppSpacing.space24),
                   PrimaryButton(

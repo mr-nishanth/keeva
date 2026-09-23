@@ -1,6 +1,8 @@
 package io.nishvanta.keeva
 
+import io.nishvanta.keeva.auth.BiometricEnrollmentGuard
 import io.nishvanta.keeva.status.StatusDocumentReader
+import java.security.InvalidKeyException
 import io.nishvanta.keeva.status.ThumbnailManager
 import io.nishvanta.keeva.status.VideoCacheManager
 import org.junit.Assert.*
@@ -109,5 +111,13 @@ class NativeStorageUnitTest {
         } finally {
             tempDir.deleteRecursively()
         }
+    }
+
+    @Test
+    fun biometricEnrollmentInvalidKeyRequiresPassword() {
+        val status = BiometricEnrollmentGuard.statusForKeyException(
+            InvalidKeyException("enrollment no longer matches"),
+        )
+        assertEquals("changed", status)
     }
 }

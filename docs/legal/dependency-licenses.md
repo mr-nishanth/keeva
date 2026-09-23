@@ -11,6 +11,7 @@ The following table details all direct dependencies declared in `pubspec.yaml` a
 | Dependency | Version | License | Source | Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | `cupertino_icons` | `1.0.9` | MIT | [pub.dev](https://pub.dev/packages/cupertino_icons) | iOS-style iconography, authored by Vladimir Kharlampidi. |
+| `local_auth` | `3.0.2` | BSD-3-Clause | [pub.dev](https://pub.dev/packages/local_auth) | On-device biometric prompt by the Flutter authors. Platform implementations `local_auth_android` `2.2.0`, `local_auth_darwin` `2.0.4`, `local_auth_windows` `2.0.2`, and `local_auth_platform_interface` `1.1.0` are also BSD-3-Clause. No network access. |
 | `flutter` | `0.0.0` (SDK 3.24+) | BSD-3-Clause | Flutter SDK | Core Flutter UI framework, authored by Google and The Flutter Authors. |
 | `flutter_riverpod` | `3.4.3` | MIT | [pub.dev](https://pub.dev/packages/flutter_riverpod) | Reactive state management layer, authored by Remi Rousselet. |
 | `video_player` | `2.14.0` | BSD-3-Clause | [pub.dev](https://pub.dev/packages/video_player) | Official Flutter video playback plugin, authored by The Flutter Authors. |

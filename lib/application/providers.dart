@@ -1,11 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/auth/local_auth_biometric_authenticator.dart';
+import '../data/auth/platform_biometric_enrollment_guard.dart';
 import '../data/auth/secure_session_store.dart';
 import '../data/auth/session_store.dart';
 import '../data/datasources/status_platform_datasource.dart';
 import '../data/repositories/auth_repository_impl.dart';
 import '../data/repositories/status_repository_impl.dart';
 import '../domain/repositories/auth_repository.dart';
+import '../domain/repositories/biometric_authenticator.dart';
+import '../domain/repositories/biometric_enrollment_guard.dart';
 import '../domain/repositories/status_repository.dart';
 import '../domain/use_cases/check_storage_access_use_case.dart';
 import '../domain/use_cases/get_statuses_use_case.dart';
@@ -22,6 +26,7 @@ import 'access/access_notifier.dart';
 import 'access/access_state.dart';
 import 'auth/auth_notifier.dart';
 import 'auth/auth_state.dart';
+import 'auth/biometric_settings_notifier.dart';
 import 'saver/save_notifier.dart';
 import 'saver/save_state.dart';
 import 'statuses/status_list_notifier.dart';
@@ -72,6 +77,18 @@ final statusRepositoryProvider = Provider<StatusRepository>((ref) {
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final sessionStore = ref.watch(sessionStoreProvider);
   return AuthRepositoryImpl(sessionStore);
+});
+
+/// Platform biometric prompt. Tests override this with a fake.
+final biometricAuthenticatorProvider = Provider<BiometricAuthenticator>((ref) {
+  return LocalAuthBiometricAuthenticator();
+});
+
+/// Enrollment-change binding for biometric unlock.
+final biometricEnrollmentGuardProvider = Provider<BiometricEnrollmentGuard>((
+  ref,
+) {
+  return PlatformBiometricEnrollmentGuard();
 });
 
 // =============================================================================
@@ -146,6 +163,12 @@ final signInUseCaseProvider = Provider<SignInUseCase>((ref) {
 final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(
   AuthNotifier.new,
 );
+
+/// Biometric unlock switch shown on the Settings screen.
+final biometricSettingsProvider =
+    AsyncNotifierProvider<BiometricSettingsNotifier, BiometricSettings>(
+      BiometricSettingsNotifier.new,
+    );
 
 /// Manages SAF directory access state.
 ///

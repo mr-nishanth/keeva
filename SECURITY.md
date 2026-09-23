@@ -18,6 +18,7 @@ Keeva is engineered around a privacy-preserving, local-first mobile architecture
 - **Storage Access Framework (SAF)**: Keeva does not request or require broad storage manager permissions (`MANAGE_EXTERNAL_STORAGE`). File and directory access is limited strictly to the location explicitly chosen and authorized by the user via Android's native system picker (`ACTION_OPEN_DOCUMENT_TREE`).
 - **MediaStore Export**: Kept media is saved to standard public collections (`Pictures/SavedStatus`, `Movies/SavedStatus`) via scoped Android MediaStore APIs without requesting broad legacy storage permissions.
 - **Opaque Identifiers**: Storage URIs and raw filesystem paths remain encapsulated within the native Android service layer; Flutter presentation widgets interact only with opaque identifiers.
+- **Local sign-in and biometric unlock**: The password is checked on-device and is not stored. A random session token lives in the platform secure store. Optional biometric unlock uses Android BiometricPrompt and Apple LocalAuthentication through `local_auth` and does not add a custom biometric matcher. See `docs/decisions/007-local-sign-in-gate.md` and `docs/decisions/008-biometric-session-unlock.md`.
 
 
 ---

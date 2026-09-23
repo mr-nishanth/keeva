@@ -31,6 +31,8 @@ abstract final class AppIcons {
   static const IconData person = Icons.person_outline_rounded;
   static const IconData visibility = Icons.visibility_outlined;
   static const IconData visibilityOff = Icons.visibility_off_outlined;
+  static const IconData fingerprint = Icons.fingerprint_rounded;
+  static const IconData logout = Icons.logout_rounded;
   static const IconData folder = Icons.folder_rounded;
   static const IconData folderOpen = Icons.folder_open_rounded;
 
