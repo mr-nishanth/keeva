@@ -4,16 +4,25 @@ import 'package:whatsapp_status_saver/application/auth/auth_state.dart';
 import 'package:whatsapp_status_saver/application/providers.dart';
 import 'package:whatsapp_status_saver/domain/entities/auth_session.dart';
 
+import '../../support/fake_biometric.dart';
 import '../../support/fake_session_store.dart';
 
 void main() {
   late FakeSessionStore store;
+  late FakeBiometricAuthenticator biometrics;
+  late FakeBiometricEnrollmentGuard enrollment;
   late ProviderContainer container;
 
   setUp(() {
     store = FakeSessionStore();
+    biometrics = FakeBiometricAuthenticator();
+    enrollment = FakeBiometricEnrollmentGuard();
     container = ProviderContainer(
-      overrides: [sessionStoreProvider.overrideWithValue(store)],
+      overrides: [
+        sessionStoreProvider.overrideWithValue(store),
+        biometricAuthenticatorProvider.overrideWithValue(biometrics),
+        biometricEnrollmentGuardProvider.overrideWithValue(enrollment),
+      ],
     );
   });
 
@@ -61,7 +70,11 @@ void main() {
         );
 
         final relaunched = ProviderContainer(
-          overrides: [sessionStoreProvider.overrideWith((ref) => store)],
+          overrides: [
+            sessionStoreProvider.overrideWith((ref) => store),
+            biometricAuthenticatorProvider.overrideWithValue(biometrics),
+            biometricEnrollmentGuardProvider.overrideWithValue(enrollment),
+          ],
         );
         addTearDown(relaunched.dispose);
 

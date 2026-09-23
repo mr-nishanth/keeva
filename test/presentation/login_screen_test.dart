@@ -12,6 +12,7 @@ import 'package:whatsapp_status_saver/presentation/auth/login_screen.dart';
 import 'package:whatsapp_status_saver/presentation/moments/moments_screen.dart';
 import 'package:whatsapp_status_saver/presentation/onboarding/permission_onboarding_screen.dart';
 
+import '../support/fake_biometric.dart';
 import '../support/fake_session_store.dart';
 
 class _QuietAccessNotifier extends AccessNotifier {
@@ -40,9 +41,13 @@ class _QuietStatusListNotifier extends StatusListNotifier {
 
 void main() {
   late FakeSessionStore store;
+  late FakeBiometricAuthenticator biometrics;
+  late FakeBiometricEnrollmentGuard enrollment;
 
   setUp(() {
     store = FakeSessionStore();
+    biometrics = FakeBiometricAuthenticator();
+    enrollment = FakeBiometricEnrollmentGuard();
   });
 
   Future<void> pumpApp(
@@ -61,6 +66,8 @@ void main() {
       ProviderScope(
         overrides: [
           sessionStoreProvider.overrideWith((ref) => store),
+          biometricAuthenticatorProvider.overrideWithValue(biometrics),
+          biometricEnrollmentGuardProvider.overrideWithValue(enrollment),
           accessNotifierProvider.overrideWith(
             () => _QuietAccessNotifier(accessState),
           ),

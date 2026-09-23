@@ -28,5 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Keeva uses Touch ID to unlock your saved session on this device. Your password is not stored.</string>
 </dict>
 </plist>

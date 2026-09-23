@@ -3,6 +3,13 @@ abstract final class ChannelConstants {
   /// The primary MethodChannel identifier for status operations.
   static const String channelName = 'com.example.whatsapp_status_saver/scanner';
 
+  /// Enrollment-change guard for biometric unlock.
+  ///
+  /// Android binds a Keystore key. iOS returns the LocalAuthentication
+  /// domain state. This channel does not receive biometric samples.
+  static const String biometricGuardChannelName =
+      'io.nishvanta.keeva/biometric_guard';
+
   // --- Production Method Names ---
   static const String methodCheckFolderAccess = 'checkFolderAccess';
   static const String methodRequestFolderAccess = 'requestFolderAccess';

@@ -1,15 +1,18 @@
 package io.nishvanta.keeva
 
 import android.content.Intent
-import io.nishvanta.keeva.status.AndroidStatusScanner
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.nishvanta.keeva.auth.BiometricEnrollmentGuard
+import io.nishvanta.keeva.status.AndroidStatusScanner
 
 /**
- * Minimal host Activity that delegates platform channel operations
- * to the AndroidStatusScanner native facade.
+ * Host Activity for Keeva.
+ *
+ * [FlutterFragmentActivity] is required so Android BiometricPrompt, used by
+ * the local_auth plugin, has a FragmentActivity to attach to.
  */
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
 
     private lateinit var statusScanner: AndroidStatusScanner
 
@@ -17,6 +20,7 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         statusScanner = AndroidStatusScanner(this)
         statusScanner.registerWith(flutterEngine.dartExecutor.binaryMessenger)
+        BiometricEnrollmentGuard.register(flutterEngine.dartExecutor.binaryMessenger)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

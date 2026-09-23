@@ -6,6 +6,7 @@ import 'package:whatsapp_status_saver/data/auth/local_credential_checker.dart';
 import 'package:whatsapp_status_saver/data/auth/session_store.dart';
 import 'package:whatsapp_status_saver/data/repositories/auth_repository_impl.dart';
 import 'package:whatsapp_status_saver/domain/entities/auth_session.dart';
+import 'package:whatsapp_status_saver/domain/entities/biometric_unlock_preference.dart';
 
 import '../../support/fake_session_store.dart';
 
@@ -175,6 +176,63 @@ void main() {
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, isA<AuthPersistenceFailure>());
     });
+
+    test('biometric unlock stores a flag and not the password', () async {
+      final disabled = await repository.readBiometricUnlock();
+      expect(disabled.dataOrNull, BiometricUnlockPreference.disabled);
+
+      final enabled = await repository.enableBiometricUnlock(
+        enrollmentToken: 'enrollment-token',
+      );
+      expect(enabled.isSuccess, isTrue);
+      expect(
+        store.values[AuthRepositoryImpl.biometricEnabledKey],
+        AuthRepositoryImpl.biometricEnabledValue,
+      );
+      expect(
+        store.values[AuthRepositoryImpl.biometricEnrollmentKey],
+        'enrollment-token',
+      );
+      expect(
+        store.values.values.any((value) => value.contains(password)),
+        isFalse,
+      );
+
+      final stored = await repository.readBiometricUnlock();
+      expect(stored.dataOrNull?.enabled, isTrue);
+      expect(stored.dataOrNull?.enrollmentToken, 'enrollment-token');
+
+      await repository.disableBiometricUnlock();
+      final afterDisable = await repository.readBiometricUnlock();
+      expect(afterDisable.dataOrNull?.enabled, isFalse);
+      expect(afterDisable.dataOrNull?.enrollmentToken, isNull);
+    });
+
+    test('signOut removes the session and biometric preference', () async {
+      await repository.signIn(username: 'nishanth', password: password);
+      await repository.enableBiometricUnlock(enrollmentToken: 'bound');
+      await repository.dismissBiometricOffer();
+
+      final signedOut = await repository.signOut();
+
+      expect(signedOut.isSuccess, isTrue);
+      expect(store.values, isEmpty);
+      final session = await repository.readSession();
+      expect(session.dataOrNull, isNull);
+      final biometric = await repository.readBiometricUnlock();
+      expect(biometric.dataOrNull, BiometricUnlockPreference.disabled);
+    });
+
+    test('signOut fails closed when a delete throws', () async {
+      final partial = _FailDeleteStore();
+      final signingOut = AuthRepositoryImpl(partial, random: Random(1));
+      await signingOut.signIn(username: 'nishanth', password: password);
+
+      final result = await signingOut.signOut();
+
+      expect(result.isFailure, isTrue);
+      expect(result.failureOrNull, isA<AuthPersistenceFailure>());
+    });
   });
 }
 
@@ -197,5 +255,22 @@ class _FailSecondWriteStore implements SessionStore {
   @override
   Future<void> delete({required String key}) async {
     values.remove(key);
+  }
+}
+
+class _FailDeleteStore implements SessionStore {
+  final Map<String, String> values = {};
+
+  @override
+  Future<String?> read({required String key}) async => values[key];
+
+  @override
+  Future<void> write({required String key, required String value}) async {
+    values[key] = value;
+  }
+
+  @override
+  Future<void> delete({required String key}) async {
+    throw StateError('delete failed');
   }
 }

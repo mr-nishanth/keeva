@@ -43,13 +43,17 @@ All third-party Flutter packages utilized by Keeva have been audited for privacy
 - `video_player` / `video_player_avfoundation`: Hardware-accelerated local video playback via system decoders.
 - `cupertino_icons`: Static vector font.
 - `drift` / `sqlite3`: Local on-device relational database.
-- `flutter_secure_storage`: On-device Keystore / Keychain storage for the local sign-in session token. No network access.
+- `flutter_secure_storage`: On-device Keystore / Keychain storage for the local sign-in session token and the biometric-unlock flag. No network access.
 - `crypto`: SHA-256 for the on-device password check. No network access.
+- `local_auth`: On-device biometric prompt (Android BiometricPrompt, Apple LocalAuthentication). No biometric samples, passwords, or session tokens leave the device.
 
 ### 2.6 Local sign-in
 - Keeva asks for a username and password before onboarding or the main shell.
 - The check happens on the device against a precomputed password digest. The password is not written to storage and is not transmitted.
 - After a successful sign-in, a random session token and a credentials version are stored in the platform secure store so later launches can skip the login screen while that session remains valid.
+- If the user turns on biometric unlock, Keeva stores only an enabled flag and, when the platform supports it, an opaque enrollment binding. The password is not stored. Later launches ask the operating system to authenticate with an enrolled fingerprint or face before that session token is restored. Cancel, failure, or missing hardware returns to the password form.
+- If biometric enrollment changes and the platform reports that change, Keeva deletes the session and the biometric flag so the password is required again.
+- Signing out deletes the session token and the biometric unlock preference.
 - Clearing app storage or uninstalling the app removes the session.
 
 ---

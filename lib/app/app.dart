@@ -5,6 +5,7 @@ import '../application/access/access_state.dart';
 import '../application/auth/auth_state.dart';
 import '../application/providers.dart';
 import '../domain/entities/status_item.dart';
+import '../presentation/auth/biometric_unlock_screen.dart';
 import '../presentation/auth/login_screen.dart';
 import '../presentation/kept/kept_vault_screen.dart';
 import '../presentation/moments/moments_screen.dart';
@@ -33,6 +34,7 @@ class KeevaApp extends ConsumerStatefulWidget {
 class _KeevaAppState extends ConsumerState<KeevaApp> {
   NavDestination _activeDestination = NavDestination.moments;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  var _biometricOfferVisible = false;
 
   @override
   void initState() {
@@ -46,6 +48,26 @@ class _KeevaAppState extends ConsumerState<KeevaApp> {
         ref.read(accessNotifierProvider.notifier).checkAccess();
       }
     });
+  }
+
+  Future<void> _offerBiometricUnlock() async {
+    if (_biometricOfferVisible || !mounted) return;
+    final current = ref.read(authNotifierProvider);
+    if (current is! AuthAuthenticated || !current.offerBiometricSetup) return;
+    final dialogContext = _navigatorKey.currentContext;
+    if (dialogContext == null) return;
+
+    _biometricOfferVisible = true;
+    final enable = await showBiometricSetupDialog(dialogContext);
+    _biometricOfferVisible = false;
+    if (!mounted) return;
+
+    final notifier = ref.read(authNotifierProvider.notifier);
+    if (enable) {
+      await notifier.enableBiometricUnlock();
+    } else {
+      await notifier.dismissBiometricOffer();
+    }
   }
 
   void _openViewer(StatusItem item) {
@@ -87,6 +109,13 @@ class _KeevaAppState extends ConsumerState<KeevaApp> {
       if (next.isAuthenticated && previous is! AuthAuthenticated) {
         ref.read(accessNotifierProvider.notifier).checkAccess();
       }
+      if (next is AuthAuthenticated &&
+          next.offerBiometricSetup &&
+          previous is! AuthAuthenticated) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _offerBiometricUnlock();
+        });
+      }
     });
 
     ref.listen<AccessState>(accessNotifierProvider, (previous, next) {
@@ -97,10 +126,12 @@ class _KeevaAppState extends ConsumerState<KeevaApp> {
 
     final Widget content;
 
-    if (!authState.isAuthenticated) {
-      content = authState is AuthRestoring
-          ? const AuthRestoringView()
-          : const LoginScreen();
+    if (authState is AuthRestoring) {
+      content = const AuthRestoringView();
+    } else if (authState is AuthBiometricLocked) {
+      content = const BiometricUnlockScreen();
+    } else if (!authState.isAuthenticated) {
+      content = const LoginScreen();
     } else if (accessState.isGranted) {
       final activeScreen = switch (_activeDestination) {
         NavDestination.moments => MomentsScreen(
