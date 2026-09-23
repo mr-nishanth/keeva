@@ -159,3 +159,19 @@ final class CacheWriteFailure extends AppFailure {
 final class UnknownFailure extends AppFailure {
   const UnknownFailure(super.message, {super.code = 'UNKNOWN'});
 }
+
+/// Indicates the entered username or password did not match.
+final class InvalidCredentialsFailure extends AppFailure {
+  const InvalidCredentialsFailure(
+    super.message, {
+    super.code = 'INVALID_CREDENTIALS',
+  });
+}
+
+/// Indicates the on-device session could not be read or written.
+final class AuthPersistenceFailure extends AppFailure {
+  const AuthPersistenceFailure(
+    super.message, {
+    super.code = 'AUTH_PERSISTENCE_FAILED',
+  });
+}

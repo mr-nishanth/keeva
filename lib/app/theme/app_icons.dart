@@ -28,6 +28,9 @@ abstract final class AppIcons {
   // Trust, Privacy & Folders
   static const IconData privacyShield = Icons.verified_user_rounded;
   static const IconData lock = Icons.lock_outline_rounded;
+  static const IconData person = Icons.person_outline_rounded;
+  static const IconData visibility = Icons.visibility_outlined;
+  static const IconData visibilityOff = Icons.visibility_off_outlined;
   static const IconData folder = Icons.folder_rounded;
   static const IconData folderOpen = Icons.folder_open_rounded;
 

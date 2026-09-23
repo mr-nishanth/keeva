@@ -43,6 +43,14 @@ All third-party Flutter packages utilized by Keeva have been audited for privacy
 - `video_player` / `video_player_avfoundation`: Hardware-accelerated local video playback via system decoders.
 - `cupertino_icons`: Static vector font.
 - `drift` / `sqlite3`: Local on-device relational database.
+- `flutter_secure_storage`: On-device Keystore / Keychain storage for the local sign-in session token. No network access.
+- `crypto`: SHA-256 for the on-device password check. No network access.
+
+### 2.6 Local sign-in
+- Keeva asks for a username and password before onboarding or the main shell.
+- The check happens on the device against a precomputed password digest. The password is not written to storage and is not transmitted.
+- After a successful sign-in, a random session token and a credentials version are stored in the platform secure store so later launches can skip the login screen while that session remains valid.
+- Clearing app storage or uninstalling the app removes the session.
 
 ---
 
