@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/access/access_state.dart';
+import '../application/auth/auth_state.dart';
 import '../application/providers.dart';
 import '../domain/entities/status_item.dart';
+import '../presentation/auth/login_screen.dart';
 import '../presentation/kept/kept_vault_screen.dart';
 import '../presentation/moments/moments_screen.dart';
 import '../presentation/onboarding/permission_onboarding_screen.dart';
@@ -16,7 +18,8 @@ import 'theme/app_theme.dart';
 /// Top-level application widget for Keeva.
 ///
 /// Implements the complete production application flow:
-/// - Verifies SAF access on startup via [accessNotifierProvider].
+/// - Restores the local sign-in session and shows [LoginScreen] until it is valid.
+/// - Verifies SAF access on startup via [accessNotifierProvider] after sign-in.
 /// - Displays 3-step [PermissionOnboardingScreen] if access has not been granted.
 /// - Transitions to [AppShell] hosting Moments, Kept Vault, and Settings once granted.
 /// - Manages full-screen [MediaViewerScreen] transitions with 300ms smooth transition.
@@ -34,9 +37,14 @@ class _KeevaAppState extends ConsumerState<KeevaApp> {
   @override
   void initState() {
     super.initState();
-    // Verify storage access on startup
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(accessNotifierProvider.notifier).checkAccess();
+      if (!mounted) return;
+      final authState = ref.read(authNotifierProvider);
+      if (authState is AuthRestoring) {
+        ref.read(authNotifierProvider.notifier).restore();
+      } else if (authState.isAuthenticated) {
+        ref.read(accessNotifierProvider.notifier).checkAccess();
+      }
     });
   }
 
@@ -72,7 +80,14 @@ class _KeevaAppState extends ConsumerState<KeevaApp> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
     final accessState = ref.watch(accessNotifierProvider);
+
+    ref.listen<AuthState>(authNotifierProvider, (previous, next) {
+      if (next.isAuthenticated && previous is! AuthAuthenticated) {
+        ref.read(accessNotifierProvider.notifier).checkAccess();
+      }
+    });
 
     ref.listen<AccessState>(accessNotifierProvider, (previous, next) {
       if (next.isGranted && previous is! AccessGranted) {
@@ -82,7 +97,11 @@ class _KeevaAppState extends ConsumerState<KeevaApp> {
 
     final Widget content;
 
-    if (accessState.isGranted) {
+    if (!authState.isAuthenticated) {
+      content = authState is AuthRestoring
+          ? const AuthRestoringView()
+          : const LoginScreen();
+    } else if (accessState.isGranted) {
       final activeScreen = switch (_activeDestination) {
         NavDestination.moments => MomentsScreen(
           onStatusSelected: (item) => _openViewer(item),

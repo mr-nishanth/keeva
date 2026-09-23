@@ -4,12 +4,22 @@ import 'package:integration_test/integration_test.dart';
 import 'package:whatsapp_status_saver/app/app.dart';
 import 'package:whatsapp_status_saver/application/access/access_notifier.dart';
 import 'package:whatsapp_status_saver/application/access/access_state.dart';
+import 'package:whatsapp_status_saver/application/auth/auth_notifier.dart';
+import 'package:whatsapp_status_saver/application/auth/auth_state.dart';
 import 'package:whatsapp_status_saver/application/providers.dart';
+import 'package:whatsapp_status_saver/domain/entities/auth_session.dart';
 import 'package:whatsapp_status_saver/application/statuses/status_list_notifier.dart';
 import 'package:whatsapp_status_saver/application/statuses/status_list_state.dart';
 import 'package:whatsapp_status_saver/domain/entities/status_item.dart';
 import 'package:whatsapp_status_saver/presentation/moments/status_card.dart';
 import 'package:whatsapp_status_saver/presentation/viewer/media_viewer_screen.dart';
+
+class SignedInAuthNotifier extends AuthNotifier {
+  @override
+  AuthState build() {
+    return const AuthAuthenticated(AuthSession(username: 'nishanth'));
+  }
+}
 
 class TestAccessNotifier extends AccessNotifier {
   final AccessState initial;
@@ -56,6 +66,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
+              authNotifierProvider.overrideWith(SignedInAuthNotifier.new),
               accessNotifierProvider.overrideWith(
                 () => TestAccessNotifier(const AccessGranted()),
               ),

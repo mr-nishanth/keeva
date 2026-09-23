@@ -4,7 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:whatsapp_status_saver/app/app.dart';
 import 'package:whatsapp_status_saver/application/access/access_notifier.dart';
 import 'package:whatsapp_status_saver/application/access/access_state.dart';
+import 'package:whatsapp_status_saver/application/auth/auth_notifier.dart';
+import 'package:whatsapp_status_saver/application/auth/auth_state.dart';
 import 'package:whatsapp_status_saver/application/providers.dart';
+import 'package:whatsapp_status_saver/domain/entities/auth_session.dart';
 import 'package:whatsapp_status_saver/application/statuses/status_list_notifier.dart';
 import 'package:whatsapp_status_saver/application/statuses/status_list_state.dart';
 import 'package:whatsapp_status_saver/domain/entities/status_item.dart';
@@ -25,6 +28,13 @@ class MockAccessNotifier extends AccessNotifier {
 
   @override
   Future<void> checkAccess({String targetPackage = ''}) async {}
+}
+
+class SignedInAuthNotifier extends AuthNotifier {
+  @override
+  AuthState build() {
+    return const AuthAuthenticated(AuthSession(username: 'nishanth'));
+  }
 }
 
 class MockStatusListNotifier extends StatusListNotifier {
@@ -56,6 +66,7 @@ void main() {
   }) {
     return ProviderScope(
       overrides: [
+        authNotifierProvider.overrideWith(SignedInAuthNotifier.new),
         accessNotifierProvider.overrideWith(
           () => MockAccessNotifier(accessState),
         ),

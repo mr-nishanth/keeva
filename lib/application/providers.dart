@@ -1,19 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/auth/secure_session_store.dart';
+import '../data/auth/session_store.dart';
 import '../data/datasources/status_platform_datasource.dart';
+import '../data/repositories/auth_repository_impl.dart';
 import '../data/repositories/status_repository_impl.dart';
+import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/status_repository.dart';
 import '../domain/use_cases/check_storage_access_use_case.dart';
 import '../domain/use_cases/get_statuses_use_case.dart';
 import '../domain/use_cases/get_thumbnail_use_case.dart';
 import '../domain/use_cases/prepare_video_playback_use_case.dart';
 import '../domain/use_cases/request_storage_access_use_case.dart';
+import '../domain/use_cases/restore_auth_session_use_case.dart';
 import '../domain/use_cases/save_status_use_case.dart';
 import '../domain/use_cases/share_status_use_case.dart';
+import '../domain/use_cases/sign_in_use_case.dart';
 import '../platform/method_channel_status_scanner.dart';
 import '../platform/status_scanner_platform_interface.dart';
 import 'access/access_notifier.dart';
 import 'access/access_state.dart';
+import 'auth/auth_notifier.dart';
+import 'auth/auth_state.dart';
 import 'saver/save_notifier.dart';
 import 'saver/save_state.dart';
 import 'statuses/status_list_notifier.dart';
@@ -24,6 +32,13 @@ import 'viewer/viewer_state.dart';
 // =============================================================================
 // PLATFORM & INFRASTRUCTURE PROVIDERS
 // =============================================================================
+
+/// On-device secure store for the local sign-in session.
+///
+/// Override in tests with an in-memory [SessionStore].
+final sessionStoreProvider = Provider<SessionStore>((ref) {
+  return SecureSessionStore();
+});
 
 /// Provides the platform scanner interface implementation.
 ///
@@ -51,6 +66,12 @@ final statusPlatformDatasourceProvider = Provider<StatusPlatformDatasource>((
 final statusRepositoryProvider = Provider<StatusRepository>((ref) {
   final datasource = ref.watch(statusPlatformDatasourceProvider);
   return StatusRepositoryImpl(datasource);
+});
+
+/// Provides the local sign-in repository.
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  final sessionStore = ref.watch(sessionStoreProvider);
+  return AuthRepositoryImpl(sessionStore);
 });
 
 // =============================================================================
@@ -103,9 +124,28 @@ final shareStatusUseCaseProvider = Provider<ShareStatusUseCase>((ref) {
   return ShareStatusUseCase(repository);
 });
 
+/// Provides [RestoreAuthSessionUseCase] for cold-start session restore.
+final restoreAuthSessionUseCaseProvider = Provider<RestoreAuthSessionUseCase>((
+  ref,
+) {
+  final repository = ref.watch(authRepositoryProvider);
+  return RestoreAuthSessionUseCase(repository);
+});
+
+/// Provides [SignInUseCase] for the local username and password check.
+final signInUseCaseProvider = Provider<SignInUseCase>((ref) {
+  final repository = ref.watch(authRepositoryProvider);
+  return SignInUseCase(repository);
+});
+
 // =============================================================================
 // APPLICATION NOTIFIER PROVIDERS
 // =============================================================================
+
+/// Manages the local sign-in session that gates the rest of the app.
+final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);
 
 /// Manages SAF directory access state.
 ///
