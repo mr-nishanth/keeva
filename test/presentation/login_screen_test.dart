@@ -147,7 +147,8 @@ void main() {
       expect(find.byType(LoginScreen), findsNothing);
       expect(find.byType(PermissionOnboardingScreen), findsOneWidget);
       expect(find.text('Welcome to Keeva'), findsOneWidget);
-      expect(store.values, contains(AuthRepositoryImpl.sessionMarkerKey));
+      expect(store.values, contains(AuthRepositoryImpl.sessionTokenKey));
+      expect(store.values, contains(AuthRepositoryImpl.credentialsVersionKey));
     });
 
     testWidgets('a saved session skips login on the next launch', (
